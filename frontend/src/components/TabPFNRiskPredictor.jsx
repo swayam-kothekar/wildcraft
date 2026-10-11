@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiUrl } from '../config/api';
 
 const SLIDERS = [
   { key: 'elevation',    label: 'Elevation',            unit: 'm',   min: 100,  max: 4000, step: 50,  icon: '▲' },
@@ -74,7 +75,7 @@ export default function TabPFNRiskPredictor({ liveConditions, onRiskUpdate }) {
   const predict = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/predict-survival-risk', {
+      const res = await fetch(apiUrl('/api/predict-survival-risk'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

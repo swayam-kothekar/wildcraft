@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiUrl } from '../config/api';
 
 const QUICK_TOPICS = [
   { label: 'Bow Drill Fire',    q: 'How do I carve and build a Bow Drill friction fire?' },
@@ -37,7 +38,7 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
     try {
-      const res = await fetch('/api/survival-guide', {
+      const res = await fetch(apiUrl('/api/survival-guide'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -50,7 +51,7 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
       const data = await res.json();
       setResponse(data);
 
-      const vRes = await fetch('/api/synthesize-voice', {
+      const vRes = await fetch(apiUrl('/api/synthesize-voice'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: data.response }),

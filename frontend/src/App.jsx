@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiUrl } from './config/api';
 import Navbar from './components/Navbar';
 import HomePage from './components/HomePage';
 import TabPFNRiskPredictor from './components/TabPFNRiskPredictor';
@@ -29,7 +30,7 @@ export default function App() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude: lat, longitude: lon } = pos.coords;
-        fetch(`/api/wilderness-weather?lat=${lat}&lon=${lon}`)
+        fetch(apiUrl(`/api/wilderness-weather?lat=${lat}&lon=${lon}`))
           .then(r => r.json())
           .then(d => setLiveConditions(d))
           .catch(e => console.warn('Weather fetch:', e))
@@ -42,7 +43,7 @@ export default function App() {
   // Initial data load
   useEffect(() => {
     requestLocation();
-    fetch('/api/trail-alerts')
+    fetch(apiUrl('/api/trail-alerts'))
       .then(r => r.json())
       .then(d => setTrailAlerts(d))
       .catch(() => {});

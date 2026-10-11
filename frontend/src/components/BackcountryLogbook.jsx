@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiUrl } from '../config/api';
 
 const SAMPLE_LOG = {
   hiker_name: 'Alex Rivers',
@@ -27,7 +28,7 @@ export default function BackcountryLogbook({ riskData }) {
   const [logs, setLogs] = useState([SAMPLE_LOG]);
   // Load persisted logs from MongoDB Atlas
   useEffect(() => {
-    fetch('/api/backcountry-logs')
+    fetch(apiUrl('/api/backcountry-logs'))
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
@@ -46,7 +47,7 @@ export default function BackcountryLogbook({ riskData }) {
       timestamp: new Date().toLocaleString(),
     };
     try {
-      await fetch('/api/backcountry-log', {
+      await fetch(apiUrl('/api/backcountry-log'), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(entry),
       });

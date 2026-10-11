@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { apiUrl } from '../config/api';
 
 const FALLBACK = [
   { id: 'plant_blackberry', category: 'Edible Plant',    name: 'Wild Blackberry',   safety_status: 'EDIBLE & SAFE',    identification_features: 'Compound serrated leaves, aggregate berries, no latex sap.', audio_guide: 'Aggregate drupelets with no white sap are safe to eat.' },
@@ -16,7 +17,7 @@ export default function PlantSafetyScanner({ onSelectTopic }) {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    fetch('/api/survival-catalog')
+    fetch(apiUrl('/api/survival-catalog'))
       .then(r => r.json())
       .then(d => { setCatalog(d); setSelected(d[0] ?? null); })
       .catch(() => { setCatalog(FALLBACK); setSelected(FALLBACK[0]); });
@@ -24,7 +25,7 @@ export default function PlantSafetyScanner({ onSelectTopic }) {
 
   const handleSearch = q => {
     setSearchQuery(q);
-    fetch(`/api/survival-catalog?q=${encodeURIComponent(q)}`)
+    fetch(apiUrl(`/api/survival-catalog?q=${encodeURIComponent(q)}`))
       .then(r => r.json())
       .then(d => { setCatalog(d); if (d.length) setSelected(d[0]); })
       .catch(() => {});
