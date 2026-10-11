@@ -1,0 +1,127 @@
+[
+  {
+    "id": "plant_blackberry",
+    "category": "Edible Plant",
+    "name": "Wild Blackberry (Rubus fruticosus)",
+    "safety_status": "EDIBLE & SAFE",
+    "identification_features": "Compound leaves with 3-5 serrated leaflets, thorny stems, aggregate black berries with no milky sap.",
+    "edibility_notes": "Berries are rich in Vitamin C and sugar. Leaves can be steeped into anti-inflammatory tea.",
+    "audio_guide": "Wild blackberries have distinct aggregate drupelets. Ensure the vine has no milky latex white sap. All aggregate berries in North America with multiple small beads are edible.",
+    "tags": [
+      "plant",
+      "edible",
+      "berry",
+      "foraging"
+    ]
+  },
+  {
+    "id": "plant_hemlock",
+    "category": "Poisonous Plant",
+    "name": "Poison Hemlock (Conium maculatum)",
+    "safety_status": "DEADLY POISONOUS",
+    "identification_features": "Smooth green stems with distinct purple spots/blotches, lacy fern-like leaves, musty parsnip odor.",
+    "edibility_notes": "Contains toxic coniine alkaloids. Ingestion causes respiratory paralysis. DO NOT TOUCH OR EAT.",
+    "audio_guide": "WARNING: Poison Hemlock can be mistaken for wild carrot. Look closely at the stem: poison hemlock stems are completely hairless with distinct purple spots. Never consume lacy green umbel plants without 100% positive ID.",
+    "tags": [
+      "plant",
+      "toxic",
+      "poisonous",
+      "danger"
+    ]
+  },
+  {
+    "id": "shelter_aframe",
+    "category": "Bushcraft Shelter",
+    "name": "Debris A-Frame Shelter",
+    "safety_status": "HYPOTHERMIA PREVENTION",
+    "identification_features": "Ridge pole supported by Y-sticks, rib sticks laid at 45 degrees, covered with 3 feet of dry leaves and pine needles.",
+    "edibility_notes": "Traps body heat to prevent hypothermia down to freezing temperatures without a fire.",
+    "audio_guide": "Find a sturdy ridge pole slightly longer than your body height. Prop one end up 3 feet on a stump or Y-stick. Lean ribs along both sides, then pile dry leaves and pine needles at least waist-deep. The trapped air pockets act as natural insulation.",
+    "tags": [
+      "shelter",
+      "bushcraft",
+      "warmth",
+      "survival"
+    ]
+  },
+  {
+    "id": "fire_bowdrill",
+    "category": "Firecraft",
+    "name": "Bow Drill Friction Fire",
+    "safety_status": "RESCUE & WARMTH",
+    "identification_features": "Spindle, hearth board with V-notch, bow with paracord string, bearing block socket.",
+    "edibility_notes": "Generates glowing ember without matches or lighter.",
+    "audio_guide": "Carve a notch in your hearth board. Place your spindle into the socket with your bow cord wrapped once around it. Apply steady downward pressure on your hand socket while sawing the bow back and forth until heavy wood smoke billows from the notch.",
+    "tags": [
+      "fire",
+      "friction fire",
+      "warmth",
+      "bushcraft"
+    ]
+  },
+  {
+    "id": "knot_bowline",
+    "category": "Rigging & Knots",
+    "name": "The Bowline Knot (King of Knots)",
+    "safety_status": "RESCUE & BEAR BAG",
+    "identification_features": "Fixed loop at the end of a rope that will not slip under load or jam under high tension.",
+    "edibility_notes": "Essential for bear bag hanging, tarp ridge lines, and emergency cliff rescue harnesses.",
+    "audio_guide": "Make a small loop in the standing line. Remember the story: The rabbit comes out of the hole, goes around the big tree, and goes back down into the hole. Pull tight to set the knot.",
+    "tags": [
+      "knot",
+      "rigging",
+      "rescue",
+      "bushcraft"
+    ]
+  },
+  {
+    "id": "water_solarstill",
+    "category": "Water Purification",
+    "name": "Solar Still & Bio-Sand Filter",
+    "safety_status": "DEHYDRATION PREVENTION",
+    "identification_features": "3-stage filter made from plastic bottle/bark tube filled with charcoal, sand, and gravel, followed by boiling.",
+    "edibility_notes": "Removes sediment, heavy metals, and pathogens from stagnant water sources.",
+    "audio_guide": "Layer crushed wood charcoal at the bottom of your filter, followed by fine sand, then coarse gravel on top. Pour murky water through to remove particulate matter, then boil vigorously for at least one minute to kill pathogens.",
+    "tags": [
+      "water",
+      "purification",
+      "hydration",
+      "survival"
+    ]
+  },
+  {
+    "id": "water_cactus_safety",
+    "category": "Water Purification",
+    "name": "Desert Cactus Water Safety",
+    "safety_status": "HIGH TOXICITY WARNING",
+    "identification_features": "Most cactus pulp contains toxic oxalic acid and alkaloids that induce severe vomiting, diarrhea, and accelerated dehydration.",
+    "edibility_notes": "NEVER drink liquid directly from unknown cacti. Only the Fishhook Barrel Cactus (Ferocactus wislizeni) liquid is conditionally non-toxic, but even then should be avoided unless in extreme life-or-death emergency. Rely on solar stills, transpiration bags, or dew collection instead.",
+    "audio_guide": "WARNING: Do NOT cut open cacti to drink fluid. Cactus sap contains high concentrations of toxic oxalic acid causing severe nausea, vomiting, and faster dehydration. Collect morning dew or build a transpiration bag around leafy branches instead.",
+    "tags": [
+      "cactus",
+      "water",
+      "poisonous",
+      "desert",
+      "hydration",
+      "warning"
+    ]
+  },
+  {
+    "id": "plant_banana",
+    "category": "Edible Plant",
+    "name": "Banana Tree (Musa acuminata)",
+    "safety_status": "EDIBLE & SAFE",
+    "identification_features": "Large paddle-shaped green leaves, thick green or yellow fruit clusters. Black spots on skin indicate natural ripening — starch converting to sugar — NOT rot or toxicity.",
+    "edibility_notes": "Bananas with black spots on the skin are safe and often sweeter than yellow ones. Only discard if the flesh inside is brown, mushy, or has a fermented odor. Young banana flowers and shoots are also edible in survival situations. Large banana leaves can be used for shelter, water collection, and food wrapping.",
+    "audio_guide": "Bananas with black spots on the outside are perfectly safe to eat and often sweeter. Black spots mean the fruit is ripe. Check the inside flesh: if it is white or pale yellow and firm, it is good to eat. If the flesh is brown, mushy, and smells fermented, discard it. Banana tree leaves are excellent for collecting rainwater.",
+    "tags": [
+      "plant",
+      "edible",
+      "fruit",
+      "tropical",
+      "banana",
+      "foraging",
+      "safe"
+    ]
+  }
+]
