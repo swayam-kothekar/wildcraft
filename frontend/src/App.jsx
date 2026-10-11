@@ -30,49 +30,67 @@ export default function App() {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude: lat, longitude: lon } = pos.coords;
+        let gotLive = false;
+
+        // 1. Try configured backend API first
         try {
           const res = await fetch(apiUrl(`/api/wilderness-weather?lat=${lat}&lon=${lon}`));
           const contentType = res.headers.get('content-type') || '';
-          if (!res.ok || !contentType.includes('application/json')) {
-            throw new Error(`Backend unavailable or returned non-JSON (status: ${res.status})`);
+          if (res.ok && contentType.includes('application/json')) {
+            const d = await res.json();
+            if (d && d.status === 'live' && d.ambient_temp_c != null) {
+              setLiveConditions(d);
+              gotLive = true;
+            }
           }
-          const d = await res.json();
-          setLiveConditions(d);
         } catch (e) {
-          console.warn('Backend weather endpoint unavailable, querying live Open-Meteo directly:', e);
+          console.warn('Backend weather endpoint error:', e);
+        }
+
+        // 2. Direct client-side Open-Meteo query (no API key required, public CORS)
+        if (!gotLive) {
           try {
-            // Direct client-side Open-Meteo query (no API key required, public CORS)
             const omRes = await fetch(
               `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m`
             );
-            const omData = await omRes.json();
-            const curr = omData.current || {};
-            setLiveConditions({
-              status: 'live',
-              latitude: lat,
-              longitude: lon,
-              elevation_m: omData.elevation ?? 50,
-              ambient_temp_c: curr.temperature_2m,
-              temperature_c: curr.temperature_2m,
-              relative_humidity_pct: curr.relative_humidity_2m ?? 65.0,
-              wind_speed_kmh: curr.wind_speed_10m ?? 10.0,
-            });
+            if (omRes.ok) {
+              const omData = await omRes.json();
+              const curr = omData.current || {};
+              if (curr.temperature_2m != null) {
+                setLiveConditions({
+                  status: 'live',
+                  provider: 'Open-Meteo (Client Edge)',
+                  latitude: lat,
+                  longitude: lon,
+                  elevation_m: omData.elevation ?? 50,
+                  ambient_temp_c: curr.temperature_2m,
+                  temperature_c: curr.temperature_2m,
+                  relative_humidity_pct: curr.relative_humidity_2m ?? 65.0,
+                  wind_speed_kmh: curr.wind_speed_10m ?? 10.0,
+                });
+                gotLive = true;
+              }
+            }
           } catch (omErr) {
-            console.warn('Weather fallback to default baseline:', omErr);
-            setLiveConditions({
-              status: 'fallback',
-              latitude: lat,
-              longitude: lon,
-              elevation_m: 1450.0,
-              ambient_temp_c: 8.0,
-              temperature_c: 8.0,
-              relative_humidity_pct: 65.0,
-              wind_speed_kmh: 18.0,
-            });
+            console.warn('Direct Open-Meteo query failed:', omErr);
           }
-        } finally {
-          setGpsLoading(false);
         }
+
+        // 3. Fallback only if device is completely offline
+        if (!gotLive) {
+          setLiveConditions({
+            status: 'fallback',
+            latitude: lat,
+            longitude: lon,
+            elevation_m: 1450.0,
+            ambient_temp_c: 18.0,
+            temperature_c: 18.0,
+            relative_humidity_pct: 65.0,
+            wind_speed_kmh: 18.0,
+          });
+        }
+
+        setGpsLoading(false);
       },
       (err) => { console.warn('GPS error:', err); setGpsLoading(false); }
     );
