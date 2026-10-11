@@ -1,8 +1,7 @@
 # 🌲 WildCraft AI
 
-> **Edge-Ready Wilderness Survival Whisperer & Backcountry Physiological Risk Engine**
-
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-wildcraft.swayamk.tech-059669?style=for-the-badge&logo=vercel&logoColor=white)](https://wildcraft.swayamk.tech)
+> **Edge-Ready Wilderness Survival Whisperer & Backcountry Physiological Risk Engine**  
+> 🌐 **Live Demo:** [https://wildcraft.swayamk.tech](https://wildcraft.swayamk.tech)
 
 ---
 
