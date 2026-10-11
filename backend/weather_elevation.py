@@ -27,6 +27,7 @@ class OpenMeteoWildernessWeather:
                     "longitude": lon,
                     "elevation_m": float(elevation),
                     "ambient_temp_c": float(temp),
+                    "temperature_c": float(temp),
                     "relative_humidity_pct": float(humidity),
                     "wind_speed_kmh": float(wind_speed)
                 }
@@ -39,6 +40,7 @@ class OpenMeteoWildernessWeather:
             "longitude": lon,
             "elevation_m": 1650.0,
             "ambient_temp_c": 6.5,
+            "temperature_c": 6.5,
             "relative_humidity_pct": 72.0,
             "wind_speed_kmh": 22.0
         }

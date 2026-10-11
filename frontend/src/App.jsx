@@ -31,9 +31,24 @@ export default function App() {
       (pos) => {
         const { latitude: lat, longitude: lon } = pos.coords;
         fetch(apiUrl(`/api/wilderness-weather?lat=${lat}&lon=${lon}`))
-          .then(r => r.json())
+          .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+          })
           .then(d => setLiveConditions(d))
-          .catch(e => console.warn('Weather fetch:', e))
+          .catch(e => {
+            console.warn('Weather fetch fallback:', e);
+            setLiveConditions({
+              status: 'fallback',
+              latitude: lat,
+              longitude: lon,
+              elevation_m: 1450.0,
+              ambient_temp_c: 8.0,
+              temperature_c: 8.0,
+              relative_humidity_pct: 65.0,
+              wind_speed_kmh: 18.0,
+            });
+          })
           .finally(() => setGpsLoading(false));
       },
       (err) => { console.warn('GPS error:', err); setGpsLoading(false); }

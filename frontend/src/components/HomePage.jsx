@@ -82,7 +82,11 @@ export default function HomePage({ onTabSelect, liveConditions, gpsLoading, onRe
             {gpsLoading
               ? 'Locating...'
               : liveConditions
-                ? `${liveConditions.location || 'GPS synced'} · ${liveConditions.temperature_c ?? '—'}°C`
+                ? `${liveConditions.location || 'GPS synced'} · ${
+                    (liveConditions.ambient_temp_c ?? liveConditions.temperature_c ?? liveConditions.temp_c) != null
+                      ? `${Math.round(liveConditions.ambient_temp_c ?? liveConditions.temperature_c ?? liveConditions.temp_c)}°C`
+                      : '—°C'
+                  }`
                 : 'Detect Location & Conditions'}
           </button>
           {offlineBackcountryMode && (
