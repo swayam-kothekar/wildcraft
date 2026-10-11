@@ -28,16 +28,37 @@ export default function App() {
     if (!('geolocation' in navigator)) return;
     setGpsLoading(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const { latitude: lat, longitude: lon } = pos.coords;
-        fetch(apiUrl(`/api/wilderness-weather?lat=${lat}&lon=${lon}`))
-          .then(r => {
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            return r.json();
-          })
-          .then(d => setLiveConditions(d))
-          .catch(e => {
-            console.warn('Weather fetch fallback:', e);
+        try {
+          const res = await fetch(apiUrl(`/api/wilderness-weather?lat=${lat}&lon=${lon}`));
+          const contentType = res.headers.get('content-type') || '';
+          if (!res.ok || !contentType.includes('application/json')) {
+            throw new Error(`Backend unavailable or returned non-JSON (status: ${res.status})`);
+          }
+          const d = await res.json();
+          setLiveConditions(d);
+        } catch (e) {
+          console.warn('Backend weather endpoint unavailable, querying live Open-Meteo directly:', e);
+          try {
+            // Direct client-side Open-Meteo query (no API key required, public CORS)
+            const omRes = await fetch(
+              `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m`
+            );
+            const omData = await omRes.json();
+            const curr = omData.current || {};
+            setLiveConditions({
+              status: 'live',
+              latitude: lat,
+              longitude: lon,
+              elevation_m: omData.elevation ?? 50,
+              ambient_temp_c: curr.temperature_2m,
+              temperature_c: curr.temperature_2m,
+              relative_humidity_pct: curr.relative_humidity_2m ?? 65.0,
+              wind_speed_kmh: curr.wind_speed_10m ?? 10.0,
+            });
+          } catch (omErr) {
+            console.warn('Weather fallback to default baseline:', omErr);
             setLiveConditions({
               status: 'fallback',
               latitude: lat,
@@ -48,8 +69,10 @@ export default function App() {
               relative_humidity_pct: 65.0,
               wind_speed_kmh: 18.0,
             });
-          })
-          .finally(() => setGpsLoading(false));
+          }
+        } finally {
+          setGpsLoading(false);
+        }
       },
       (err) => { console.warn('GPS error:', err); setGpsLoading(false); }
     );
