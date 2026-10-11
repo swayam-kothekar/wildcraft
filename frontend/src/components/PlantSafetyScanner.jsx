@@ -47,10 +47,10 @@ export default function PlantSafetyScanner({ onSelectTopic }) {
     <div className="section-wrap anim-fade-up">
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <div className="section-eyebrow">MongoDB Atlas Vector RAG · Offline Catalog</div>
+        <div className="section-eyebrow">MongoDB Atlas · Botanical Catalog</div>
         <h2 className="section-title">Field Manual</h2>
         <p className="section-sub">
-          Identify edible & toxic plants, knots, shelters and water sources. Works without signal.
+          Identify edible & toxic plants, knots, shelters, and water purification techniques.
         </p>
       </div>
 

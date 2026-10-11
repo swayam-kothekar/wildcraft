@@ -48,9 +48,9 @@ export default function HomePage({ onTabSelect, liveConditions, gpsLoading, onRe
       <div className="hero-inner anim-fade-up">
         {/* Badges */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
-          <span className="badge badge--amber">🍂 Hacktoberfest 2026 — Touch Grass</span>
           <span className="badge badge--green">Open-Weight AI</span>
-          <span className="badge badge--water">Offline-First</span>
+          <span className="badge badge--water">Edge Resilient</span>
+          <span className="badge badge--amber">Hands-Free Audio</span>
         </div>
 
         {/* Headline */}
@@ -65,7 +65,7 @@ export default function HomePage({ onTabSelect, liveConditions, gpsLoading, onRe
           color: 'var(--txt-med)', lineHeight: 1.75,
           maxWidth: 580, margin: '0 auto 36px',
         }}>
-          An offline-first wilderness co-pilot powered by <strong style={{ color: 'var(--mist)' }}>Google Gemma</strong> open-weight AI,
+          An intelligent wilderness co-pilot powered by <strong style={{ color: 'var(--mist)' }}>Google Gemma</strong> open-weight AI,
           {' '}<strong style={{ color: 'var(--mist)' }}>TabPFN</strong> physiological risk predictions,
           and <strong style={{ color: 'var(--mist)' }}>ElevenLabs</strong> voice narration.
           Put your phone in your pocket.

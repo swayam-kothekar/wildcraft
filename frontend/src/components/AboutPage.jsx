@@ -20,7 +20,7 @@ export default function AboutPage() {
     <div className="section-wrap anim-fade-up">
       {/* Hero blurb */}
       <div style={{ marginBottom: 48, maxWidth: 640 }}>
-        <div className="section-eyebrow">Hacktoberfest 2026 · Touch Grass Challenge</div>
+        <div className="section-eyebrow">Architecture & Philosophy</div>
         <h2 className="section-title">Why open-source AI?</h2>
         <p className="section-sub" style={{ fontSize: '1rem', lineHeight: 1.8 }}>
           Life-saving wilderness intelligence should be free, private, and available 20 miles
@@ -81,11 +81,14 @@ export default function AboutPage() {
             <div style={{ fontSize: '0.75rem', color: 'var(--txt-med)', marginTop: 2 }}>500+ plant & survival vector chunks</div>
           </div>
         </div>
+        <div style={{ marginTop: 12, fontSize: '0.74rem', color: 'var(--txt-low)', lineHeight: 1.6 }}>
+          <strong>Operational Note:</strong> When disconnected from cellular signal, WildCraft switches to on-device edge fallbacks (local Ollama, physics-calibrated tabular heuristics, and bundled botanical datasets). Live meteorological updates and cloud sync resume upon reconnection.
+        </div>
       </div>
 
       <div className="divider" />
       <div style={{ fontSize: '0.72rem', color: 'var(--txt-ghost)', textAlign: 'center', paddingBottom: 8 }}>
-        WildCraft AI · Hacktoberfest 2026 'Touch Grass' · Built with Open-Weight Models
+        WildCraft AI · Engineered with Open-Weight AI & Foundation Models
       </div>
     </div>
   );

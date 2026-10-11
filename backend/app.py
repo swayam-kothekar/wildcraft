@@ -28,8 +28,8 @@ except ImportError:
     from wildcraft.backend.serpapi_alerts import serpapi_survival
 
 app = FastAPI(
-    title="WildCraft AI — Offline Wilderness Survival & Bushcraft Whisperer",
-    description="Backend API powering WildCraft AI, built for Hacktoberfest 'Touch Grass' challenge.",
+    title="WildCraft AI — Backcountry Survival & Physiological Risk Engine",
+    description="Backend API powering WildCraft AI with open-weight intelligence and foundation tabular modeling.",
     version="1.0.0"
 )
 
@@ -74,8 +74,7 @@ def health_check():
     return {
         "status": "online",
         "app": "WildCraft AI",
-        "challenge": "Hacktoberfest Touch Grass",
-        "runtime": "Render / DigitalOcean GPU Ready"
+        "runtime": "Production Serverless Ready"
     }
 
 @app.post("/api/predict-survival-risk")
