@@ -4,7 +4,10 @@ import httpx
 try:
     from backend.atlas_survival_store import atlas_survival_store
 except ImportError:
-    from wildcraft.backend.atlas_survival_store import atlas_survival_store
+    try:
+        from atlas_survival_store import atlas_survival_store
+    except ImportError:
+        from wildcraft.backend.atlas_survival_store import atlas_survival_store
 
 # ---------------------------------------------------------------------------
 # Gemma instruct template (required for completion-only gemma:2b).

@@ -7,7 +7,11 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 # Load environment variables from backend/.env or root .env
+import sys
 backend_dir = os.path.dirname(os.path.abspath(__file__))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 load_dotenv(os.path.join(backend_dir, ".env"))
 load_dotenv(os.path.join(os.path.dirname(backend_dir), ".env"))
 load_dotenv()
@@ -20,12 +24,20 @@ try:
     from backend.weather_elevation import wilderness_weather
     from backend.serpapi_alerts import serpapi_survival
 except ImportError:
-    from wildcraft.backend.tabpfn_survival import tabpfn_survival
-    from wildcraft.backend.gemma_survival_agent import gemma_survival
-    from wildcraft.backend.elevenlabs_voice import elevenlabs_voice
-    from wildcraft.backend.atlas_survival_store import atlas_survival_store
-    from wildcraft.backend.weather_elevation import wilderness_weather
-    from wildcraft.backend.serpapi_alerts import serpapi_survival
+    try:
+        from tabpfn_survival import tabpfn_survival
+        from gemma_survival_agent import gemma_survival
+        from elevenlabs_voice import elevenlabs_voice
+        from atlas_survival_store import atlas_survival_store
+        from weather_elevation import wilderness_weather
+        from serpapi_alerts import serpapi_survival
+    except ImportError:
+        from wildcraft.backend.tabpfn_survival import tabpfn_survival
+        from wildcraft.backend.gemma_survival_agent import gemma_survival
+        from wildcraft.backend.elevenlabs_voice import elevenlabs_voice
+        from wildcraft.backend.atlas_survival_store import atlas_survival_store
+        from wildcraft.backend.weather_elevation import wilderness_weather
+        from wildcraft.backend.serpapi_alerts import serpapi_survival
 
 app = FastAPI(
     title="WildCraft AI — Backcountry Survival & Physiological Risk Engine",
