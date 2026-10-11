@@ -1,6 +1,10 @@
 import os
 import re
 import httpx
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+load_dotenv()
 try:
     from backend.atlas_survival_store import atlas_survival_store
 except ImportError:
@@ -37,13 +41,10 @@ def _gemma_instruct_prompt(user_message: str) -> str:
 # Quality checks
 # ---------------------------------------------------------------------------
 _EVASION_PHRASES = [
-    "i am unable to", "i cannot", "i'm unable", "i can't provide",
-    "i am not able", "i don't have", "i do not have",
-    "as an ai", "as a language model", "i apologize",
-    "please consult", "please seek", "medical professional",
-    "i'm sorry", "cannot provide information",
+    "i am unable to answer", "i cannot answer this", "i cannot provide advice",
+    "as a language model", "as an ai model", "cannot provide medical information",
 ]
-_MIN_LENGTH = 40
+_MIN_LENGTH = 20
 
 
 def _is_bad_response(text: str) -> bool:
@@ -87,11 +88,14 @@ class GemmaSurvivalAgent:
     """
 
     def __init__(self):
-        self.api_key = os.getenv("GEMMA_API_KEY") or os.getenv("GEMINI_API_KEY")
         self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
         # Prefer gemma3:1b (instruction-tuned, better reasoning) if available, else gemma:2b
         self._preferred_model = os.getenv("OLLAMA_MODEL", "gemma3:1b")
         self._fallback_model = "gemma:2b"
+
+    @property
+    def api_key(self):
+        return os.getenv("GEMINI_API_KEY") or os.getenv("GEMMA_API_KEY")
 
     def _get_rag_supplement(self, user_prompt: str, topic_context: str = None) -> str:
         """Fetch relevant catalog entries as supplementary context."""
@@ -173,24 +177,46 @@ class GemmaSurvivalAgent:
         return await self._call_ollama_completion(self._fallback_model, user_message, temperature)
 
     async def _call_cloud_gemma(self, user_message: str) -> str | None:
-        """Call Google Gemma cloud API."""
+        """Call Google Gemma / Gemini cloud API with automatic model fallback."""
         if not self.api_key:
             return None
-        try:
-            url = (
-                f"https://generativelanguage.googleapis.com/v1beta/"
-                f"models/gemma-2-9b-it:generateContent?key={self.api_key}"
-            )
-            payload = {
-                "contents": [{"parts": [{"text": f"{GEMMA_SYSTEM_TEXT}\n\n{user_message}"}]}],
-                "generationConfig": {"temperature": 0.3, "maxOutputTokens": 220},
-            }
-            async with httpx.AsyncClient(timeout=12.0) as client:
-                res = await client.post(url, headers={"Content-Type": "application/json"}, json=payload)
-                if res.status_code == 200:
-                    return res.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-        except Exception as e:
-            print(f"[WildCraft] Cloud Gemma error: {e}")
+
+        candidate_models = [
+            os.getenv("GEMMA_CLOUD_MODEL"),
+            "gemini-flash-latest",
+            "gemma-4-26b-a4b-it",
+            "gemini-2.5-flash-lite",
+            "gemma-4-31b-it",
+        ]
+        candidate_models = [m for m in candidate_models if m]
+
+        payload = {
+            "system_instruction": {"parts": [{"text": GEMMA_SYSTEM_TEXT}]},
+            "contents": [{"parts": [{"text": user_message}]}],
+            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 450},
+        }
+
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            for model in candidate_models:
+                try:
+                    url = (
+                        f"https://generativelanguage.googleapis.com/v1beta/"
+                        f"models/{model}:generateContent?key={self.api_key}"
+                    )
+                    res = await client.post(url, headers={"Content-Type": "application/json"}, json=payload)
+                    if res.status_code == 200:
+                        candidates = res.json().get("candidates", [])
+                        if candidates:
+                            parts = candidates[0].get("content", {}).get("parts", [])
+                            texts = [p["text"] for p in parts if "text" in p]
+                            if texts:
+                                self._active_cloud_model = model
+                                return texts[-1].strip()
+                    else:
+                        print(f"[WildCraft] Cloud model '{model}' returned HTTP {res.status_code}")
+                except Exception as e:
+                    print(f"[WildCraft] Cloud model '{model}' error: {e}")
+
         return None
 
     async def generate_survival_guidance(
@@ -234,10 +260,12 @@ class GemmaSurvivalAgent:
                 print("[WildCraft] Cloud response poor, retrying")
                 text = await self._call_cloud_gemma(retry_message)
             if text and not _is_bad_response(text):
+                active_model = getattr(self, "_active_cloud_model", "gemma")
+                model_label = "Google Gemma (Open-Weight Cloud Engine)" if "gemma" in active_model else "Google Gemini Intelligence"
                 return {
                     "response": clean_transcript_text(_safety_post_process(text, user_prompt)),
-                    "model": "Gemma 2 (9B Open-Weight)",
-                    "execution": "Cloud Open Runtime",
+                    "model": model_label,
+                    "execution": "Cloud Open Runtime (Google AI Studio)",
                     "status": "online",
                 }
 
