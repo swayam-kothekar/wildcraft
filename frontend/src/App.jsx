@@ -62,35 +62,18 @@ export default function App() {
   const [liveConditions, setLiveConditions] = useState(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [locationDeniedModal, setLocationDeniedModal] = useState(false);
-  const [permState, setPermState] = useState('prompt');
 
   // Light mode body class
   useEffect(() => {
     document.body.classList.toggle('light-mode', lightMode);
   }, [lightMode]);
 
-  // Monitor browser geolocation permission status in real-time
-  useEffect(() => {
-    if (typeof navigator !== 'undefined' && navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: 'geolocation' }).then((status) => {
-        setPermState(status.state);
-        status.onchange = () => {
-          setPermState(status.state);
-          if (status.state === 'granted') {
-            setLocationDeniedModal(false);
-            requestLocation();
-          }
-        };
-      }).catch(() => {});
-    }
-  }, []);
-
   // Memoized risk telemetry handler to prevent render loops
   const handleRiskUpdate = React.useCallback((data) => {
     setRiskData(data);
   }, []);
 
-  // GPS + weather fetch (passing maximumAge: 0 to force fresh acquisition / prompt)
+  // GPS + weather fetch
   const requestLocation = () => {
     if (!('geolocation' in navigator)) {
       setLocationDeniedModal(true);
@@ -100,7 +83,6 @@ export default function App() {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         setLocationDeniedModal(false);
-        setPermState('granted');
         const { latitude: lat, longitude: lon } = pos.coords;
         let gotLive = false;
 
@@ -169,10 +151,8 @@ export default function App() {
         setGpsLoading(false);
         if (err && (err.code === err.PERMISSION_DENIED || err.code === 1)) {
           setLocationDeniedModal(true);
-          setPermState('denied');
         }
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      }
     );
   };
 
@@ -344,25 +324,14 @@ export default function App() {
               background: 'var(--bg-void)',
               borderRadius: 'var(--radius-sm)',
               padding: '12px 14px',
-              border: permState === 'denied' ? '1px solid rgba(230, 57, 70, 0.4)' : '1px solid var(--line)',
+              border: '1px solid var(--line)',
               fontSize: '0.78rem',
               color: 'var(--txt-low)',
               textAlign: 'left',
               lineHeight: 1.45,
               marginBottom: 20,
             }}>
-              {permState === 'denied' ? (
-                <>
-                  <strong style={{ color: 'var(--danger)', display: 'block', marginBottom: 4 }}>
-                    ⚠️ Browser Location Currently Blocked
-                  </strong>
-                  Your browser blocked location access for this site. To re-trigger the browser prompt, click the <strong>tune/lock icon (🔒)</strong> in your address bar (top left), set <strong>Location</strong> to <strong>Allow</strong> (or Reset permission), then tap <strong>Request Location Permission</strong> below.
-                </>
-              ) : (
-                <>
-                  <strong style={{ color: 'var(--fern)' }}>How to enable:</strong> Tap the button below to prompt your browser, or tap the lock icon in your address bar and set <em>Location</em> to <em>Allow</em>.
-                </>
-              )}
+              <strong style={{ color: 'var(--fern)' }}>How to enable:</strong> Tap the lock or tune icon in your browser's address bar, set <em>Location</em> to <em>Allow</em>, and tap <strong>Enable Location / Try Again</strong> below.
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -372,10 +341,9 @@ export default function App() {
                 onClick={() => {
                   requestLocation();
                 }}
-                disabled={gpsLoading}
                 style={{ width: '100%', padding: '12px 18px', fontSize: '0.88rem' }}
               >
-                {gpsLoading ? '◌ Requesting Browser Permission…' : '🔄 Request Location Permission'}
+                🔄 Enable Location / Try Again
               </button>
               <button
                 id="btn-dismiss-location"
