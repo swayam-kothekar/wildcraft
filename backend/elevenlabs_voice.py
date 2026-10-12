@@ -9,7 +9,8 @@ class ElevenLabsSurvivalVoice:
     """
     def __init__(self):
         self.api_key = os.getenv("ELEVENLABS_API_KEY")
-        self.voice_id = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+        # Default to George (pre-made voice supported on both Free and Paid tiers)
+        self.voice_id = os.getenv("ELEVENLABS_VOICE_ID", "JBFqnCBsd6RMkjVDRZzb")
 
     async def generate_speech(self, text: str) -> dict:
         if self.api_key:
@@ -22,10 +23,10 @@ class ElevenLabsSurvivalVoice:
                 }
                 payload = {
                     "text": text,
-                    "model_id": "eleven_monolingual_v1",
-                    "voice_settings": { "stability": 0.8, "similarity_boost": 0.85 }
+                    "model_id": "eleven_flash_v2_5",
+                    "voice_settings": { "stability": 0.75, "similarity_boost": 0.85 }
                 }
-                async with httpx.AsyncClient(timeout=10.0) as client:
+                async with httpx.AsyncClient(timeout=15.0) as client:
                     res = await client.post(url, headers=headers, json=payload)
                     if res.status_code == 200:
                         audio_b64 = base64.b64encode(res.content).decode("utf-8")
@@ -35,8 +36,10 @@ class ElevenLabsSurvivalVoice:
                             "audio_url": f"data:audio/mp3;base64,{audio_b64}",
                             "character_count": len(text)
                         }
+                    else:
+                        print(f"[WildCraft] ElevenLabs returned HTTP {res.status_code}: {res.text[:120]}")
             except Exception as e:
-                print(f"ElevenLabs API exception: {e}")
+                print(f"[WildCraft] ElevenLabs API exception: {e}")
 
         return {
             "status": "fallback",

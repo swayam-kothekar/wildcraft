@@ -167,6 +167,50 @@ export default function App() {
     }
   };
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('WildCraft UI Error:', error, errorInfo);
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.activeTab !== this.props.activeTab && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="section-container" style={{ padding: '60px 20px', textAlign: 'center' }}>
+          <div className="wc-card" style={{ maxWidth: 460, margin: '0 auto', padding: '32px 24px' }}>
+            <div style={{ fontSize: '2rem', marginBottom: 12 }}>🌲</div>
+            <h3 style={{ color: 'var(--txt-high)', marginBottom: 8, fontSize: '1.1rem' }}>Display Recovery</h3>
+            <p style={{ color: 'var(--txt-med)', fontSize: '0.84rem', marginBottom: 20, lineHeight: 1.5 }}>
+              This tab encountered a temporary rendering issue.
+            </p>
+            <button
+              className="btn-primary"
+              onClick={() => {
+                this.setState({ hasError: false });
+                if (this.props.onReset) this.props.onReset();
+              }}
+              style={{ padding: '8px 20px', fontSize: '0.82rem' }}
+            >
+              Return to Overview
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
   return (
     <>
       <Navbar
@@ -180,7 +224,9 @@ export default function App() {
       />
 
       <main className="page-content" role="main">
-        {renderContent()}
+        <ErrorBoundary activeTab={activeTab} onReset={() => setActiveTab('home')}>
+          {renderContent()}
+        </ErrorBoundary>
       </main>
     </>
   );

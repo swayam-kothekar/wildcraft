@@ -10,13 +10,14 @@ const SAMPLE_LOG = {
 };
 
 function RiskPip({ score }) {
-  const color = score >= 65 ? 'var(--danger)' : score >= 35 ? 'var(--amber)' : 'var(--fern)';
+  const num = typeof score === 'number' ? score : (Number(score) || 0);
+  const color = num >= 65 ? 'var(--danger)' : num >= 35 ? 'var(--amber)' : 'var(--fern)';
   return (
     <span style={{
       fontFamily: 'var(--mono)', fontSize: '0.78rem',
       color, fontWeight: 600,
     }}>
-      {score}/100
+      {num}/100
     </span>
   );
 }
@@ -25,7 +26,9 @@ export default function BackcountryLogbook({ riskData }) {
   const [hikerName, setHikerName] = useState('Alex Rivers');
   const [locationName, setLocationName] = useState('Sierra High Route Trail');
   const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
   const [logs, setLogs] = useState([SAMPLE_LOG]);
+
   // Load persisted logs from MongoDB Atlas
   useEffect(() => {
     fetch(apiUrl('/api/backcountry-logs'))
@@ -180,7 +183,7 @@ export default function BackcountryLogbook({ riskData }) {
                     {log.hiker_name}
                   </span>
                   <span style={{ fontSize: '0.68rem', color: 'var(--txt-ghost)', fontFamily: 'var(--mono)' }}>
-                    {log.timestamp}
+                    {typeof log.timestamp === 'number' ? new Date(log.timestamp * 1000).toLocaleString() : (log.timestamp || 'Recent')}
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
