@@ -10,7 +10,7 @@ const OPEN_REASONS = [
 const PARTNERS = [
   { name: 'Google Gemma',       role: 'Open-weight LLM, on-device survival AI',               color: 'var(--fern)',  dot: 'var(--fern)' },
   { name: 'Prior Labs TabPFN',  role: 'Tabular Foundation Model for physiological risk',       color: 'var(--water)', dot: 'var(--water)' },
-  { name: 'ElevenLabs',         role: 'Cinematic voice narration, hands-free audio guide',     color: 'var(--amber)', dot: 'var(--amber)' },
+  { name: 'ElevenLabs',         role: 'Cinematic voice narration, spoken outdoor audio guide', color: 'var(--amber)', dot: 'var(--amber)' },
   { name: 'MongoDB Atlas',      role: 'Cloud-synced vector store, trail log persistence',      color: '#a78bfa',      dot: '#a78bfa' },
   { name: 'SerpApi',            role: 'Real-time trail alerts, weather & emergency broadcasts',color: 'var(--ember)', dot: 'var(--ember)' },
 ];

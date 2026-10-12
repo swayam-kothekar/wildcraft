@@ -13,7 +13,7 @@ const FEATURES = [
     icon: '◉',
     tag: 'Google Gemma',
     title: 'Bushcraft AI Guide',
-    desc: 'Ask anything. Fire, shelter, knots, water purification — hands-free spoken audio.',
+    desc: 'Ask anything. Fire, shelter, knots, water purification — voice-guided spoken audio.',
   },
   {
     id: 'plants',
@@ -50,7 +50,7 @@ export default function HomePage({ onTabSelect, liveConditions, gpsLoading, onRe
         <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
           <span className="badge badge--green">Open-Weight AI</span>
           <span className="badge badge--water">Edge Resilient</span>
-          <span className="badge badge--amber">Hands-Free Audio</span>
+          <span className="badge badge--amber">Spoken Audio</span>
         </div>
 
         {/* Headline */}

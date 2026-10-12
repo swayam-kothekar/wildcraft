@@ -153,7 +153,7 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
         playBrowserTTS(data.response);
       }
     } catch {
-      const fallbackResp = `Keep calm. ${q}. Put your phone in your pocket, listen to hands-free spoken audio, and focus on the trail.`;
+      const fallbackResp = `Keep calm. ${q}. Put your phone in your pocket, listen to spoken audio narration, and focus on the trail.`;
       setResponse({
         response: fallbackResp,
         model: 'Gemma 2B (On-Device Edge)',
@@ -420,7 +420,7 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
             </button>
 
             <div style={{ fontSize: '0.7rem', color: 'var(--txt-ghost)', fontStyle: 'italic', maxWidth: 170, textAlign: 'right' }}>
-              Hands-free audio mode
+              Spoken audio active
             </div>
           </div>
         </div>
