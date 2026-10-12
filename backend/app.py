@@ -78,6 +78,7 @@ class BackcountryLogRequest(BaseModel):
     risk_score: float
     notes: str
     gear_items: Optional[List[str]] = []
+    device_id: Optional[str] = None
 
 # --- API Endpoints ---
 
@@ -145,11 +146,11 @@ def save_backcountry_log(req: BackcountryLogRequest):
 @app.get("/api/backcountry-logs")
 @app.get("/api/atlas-logbook")
 @app.get("/api/atlas-logbooks")
-def get_backcountry_logs():
+def get_backcountry_logs(device_id: Optional[str] = Query(None), limit: int = 50):
     """
-    Retrieves stored backcountry logs from MongoDB Atlas.
+    Retrieves stored backcountry logs from MongoDB Atlas filtered by device_id.
     """
-    return atlas_survival_store.get_backcountry_logs()
+    return atlas_survival_store.get_backcountry_logs(device_id=device_id, limit=limit)
 
 @app.get("/api/wilderness-weather")
 async def get_wilderness_weather(lat: float = 44.4280, lon: float = -110.5885):

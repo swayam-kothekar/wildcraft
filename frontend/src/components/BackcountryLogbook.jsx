@@ -9,6 +9,16 @@ const TEMPLATES = [
   '⚠️ Sighted fresh bear tracks heading south toward creek bed.',
 ];
 
+function getDeviceId() {
+  if (typeof window === 'undefined') return 'hiker_local';
+  let id = localStorage.getItem('wildcraft_device_id');
+  if (!id) {
+    id = 'hiker_' + Math.random().toString(36).substring(2, 10) + '_' + Date.now().toString(36);
+    localStorage.setItem('wildcraft_device_id', id);
+  }
+  return id;
+}
+
 function RiskPip({ score }) {
   let color = '#22c55e';
   let label = 'Low';
@@ -29,24 +39,34 @@ function RiskPip({ score }) {
 }
 
 export default function BackcountryLogbook({ riskData }) {
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const cached = localStorage.getItem('wildcraft_private_logs');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [hikerName, setHikerName] = useState('Alex Rivers');
   const [locationName, setLocationName] = useState('Sierra High Route Trail');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
   const fetchLogs = async () => {
+    const devId = getDeviceId();
     try {
-      const res = await fetch(apiUrl('/api/backcountry-logs'));
+      const res = await fetch(apiUrl(`/api/backcountry-logs?device_id=${encodeURIComponent(devId)}`));
       if (res.ok) {
         const d = await res.json();
         const list = Array.isArray(d) ? d : (d.entries || []);
         if (list) {
           setLogs(list);
+          localStorage.setItem('wildcraft_private_logs', JSON.stringify(list));
         }
       }
     } catch {
-      // Offline fallback: keep local
+      // Offline fallback: keep local cache
     }
   };
 
@@ -57,12 +77,14 @@ export default function BackcountryLogbook({ riskData }) {
   const saveLog = async () => {
     if (!notes.trim()) return;
     setSaving(true);
+    const devId = getDeviceId();
     const payload = {
       hiker_name: hikerName || 'Backcountry Hiker',
       location_name: locationName || 'Cascade Wilderness',
       risk_score: riskData?.risk_score_index ?? 42.0,
       notes: notes.trim(),
       gear_items: ['Tarp', 'Paracord', 'Sawyer Mini', 'Ferro Rod'],
+      device_id: devId,
       timestamp: Date.now() / 1000,
     };
 
@@ -77,12 +99,20 @@ export default function BackcountryLogbook({ riskData }) {
         await fetchLogs();
       } else {
         // Optimistic/fallback update
-        setLogs(prev => [payload, ...prev]);
+        setLogs(prev => {
+          const updated = [payload, ...prev];
+          localStorage.setItem('wildcraft_private_logs', JSON.stringify(updated));
+          return updated;
+        });
         setNotes('');
       }
     } catch {
       // Local fallback append
-      setLogs(prev => [payload, ...prev]);
+      setLogs(prev => {
+        const updated = [payload, ...prev];
+        localStorage.setItem('wildcraft_private_logs', JSON.stringify(updated));
+        return updated;
+      });
       setNotes('');
     } finally {
       setSaving(false);
@@ -103,10 +133,26 @@ export default function BackcountryLogbook({ riskData }) {
     <div className="section-wrap anim-fade-up" style={{ width: '100%', maxWidth: 1080, margin: '0 auto', minWidth: 0 }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <div className="section-eyebrow">MongoDB Atlas Cloud Database</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+          <div className="section-eyebrow" style={{ margin: 0 }}>MongoDB Atlas Cloud Database</div>
+          <span style={{
+            fontSize: '0.68rem',
+            padding: '2px 8px',
+            borderRadius: 'var(--radius-pill)',
+            border: '1px solid var(--line-mid)',
+            background: 'var(--bg-void)',
+            color: 'var(--fern)',
+            fontWeight: 700,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+          }}>
+            🔒 Private Device Journal
+          </span>
+        </div>
         <h2 className="section-title">Trail Logbook</h2>
         <p className="section-sub">
-          Record shelter spots, water sources & risk telemetry. Persisted to MongoDB Atlas.
+          Your private backcountry trail journal. Stored securely on your device & synced to MongoDB Atlas.
         </p>
       </div>
 
@@ -188,7 +234,7 @@ export default function BackcountryLogbook({ riskData }) {
         <div style={{ minWidth: 0, width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
             <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--txt-low)' }}>
-              Logbook History — {logs.length} {logs.length === 1 ? 'entry' : 'entries'}
+              My Trail Log — {logs.length} {logs.length === 1 ? 'entry' : 'entries'}
             </div>
             <button
               className="btn-outline"
@@ -199,26 +245,32 @@ export default function BackcountryLogbook({ riskData }) {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {logs.map((log, i) => (
-              <div key={i} className="log-entry" style={{ wordBreak: 'break-word', overflowWrap: 'break-word', minWidth: 0 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
-                  <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--txt-high)' }}>
-                    {log.hiker_name}
-                  </span>
-                  <span style={{ fontSize: '0.68rem', color: 'var(--txt-ghost)', fontFamily: 'var(--mono)' }}>
-                    {typeof log.timestamp === 'number' ? new Date(log.timestamp * 1000).toLocaleString() : (log.timestamp || 'Recent')}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--txt-low)' }}>{log.location_name}</span>
-                  <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--txt-ghost)' }} />
-                  <RiskPip score={log.risk_score} />
-                </div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--txt-med)', lineHeight: 1.6, fontStyle: 'italic' }}>
-                  "{log.notes}"
-                </p>
+            {logs.length === 0 ? (
+              <div className="wc-card" style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--txt-low)', fontSize: '0.84rem' }}>
+                No journal entries yet. Fill out the form above to record your first backcountry log!
               </div>
-            ))}
+            ) : (
+              logs.map((log, i) => (
+                <div key={i} className="log-entry" style={{ wordBreak: 'break-word', overflowWrap: 'break-word', minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--txt-high)' }}>
+                      {log.hiker_name}
+                    </span>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--txt-ghost)', fontFamily: 'var(--mono)' }}>
+                      {typeof log.timestamp === 'number' ? new Date(log.timestamp * 1000).toLocaleString() : (log.timestamp || 'Recent')}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--txt-low)' }}>{log.location_name}</span>
+                    <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--txt-ghost)' }} />
+                    <RiskPip score={log.risk_score} />
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--txt-med)', lineHeight: 1.6, fontStyle: 'italic' }}>
+                    "{log.notes}"
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

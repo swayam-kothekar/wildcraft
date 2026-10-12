@@ -1,6 +1,7 @@
 import os
 import json
 import time
+from typing import Optional, List
 
 class MongoAtlasSurvivalStore:
     """
@@ -126,12 +127,15 @@ class MongoAtlasSurvivalStore:
             "log": log_entry
         }
 
-    def get_backcountry_logs(self, limit: int = 20) -> list:
-        """Fetches stored hiker logs from MongoDB Atlas."""
+    def get_backcountry_logs(self, device_id: Optional[str] = None, limit: int = 50) -> list:
+        """Fetches stored hiker logs from MongoDB Atlas filtered by device_id."""
         if self.is_connected and self.db is not None:
             try:
                 col = self.db["backcountry_logs"]
-                docs = list(col.find({}, {"_id": 0}).sort("timestamp", -1).limit(limit))
+                filter_query = {}
+                if device_id:
+                    filter_query["device_id"] = device_id
+                docs = list(col.find(filter_query, {"_id": 0}).sort("timestamp", -1).limit(limit))
                 return docs
             except Exception as e:
                 print(f"[MongoDB Atlas] Log fetch error: {e}")
