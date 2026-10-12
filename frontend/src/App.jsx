@@ -62,6 +62,28 @@ export default function App() {
   const [liveConditions, setLiveConditions] = useState(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [locationDeniedModal, setLocationDeniedModal] = useState(false);
+  const [isMobileMode, setIsMobileMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const isSmall = window.innerWidth <= 768;
+    const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '');
+    return isSmall || isMobileDevice;
+  });
+  const [mobilePlatform, setMobilePlatform] = useState(() => {
+    if (typeof navigator === 'undefined') return 'android';
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '') || 
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    return isIOS ? 'ios' : 'android';
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      const isSmall = window.innerWidth <= 768;
+      const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '');
+      setIsMobileMode(isSmall || isMobileDevice);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Light mode body class
   useEffect(() => {
@@ -267,12 +289,14 @@ export default function App() {
             style={{
               maxWidth: 460,
               width: '100%',
-              padding: '28px 22px',
+              padding: isMobileMode ? '22px 18px' : '28px 22px',
               textAlign: 'center',
               border: '1px solid rgba(231, 111, 81, 0.45)',
               boxShadow: '0 24px 60px rgba(0, 0, 0, 0.8), 0 0 20px rgba(231, 111, 81, 0.2)',
               borderRadius: 'var(--radius-lg)',
               animation: 'fade-up 0.3s ease',
+              maxHeight: '92vh',
+              overflowY: 'auto',
             }}
           >
             <div style={{
@@ -320,19 +344,123 @@ export default function App() {
               WildCraft AI relies on real-time GPS coordinates to compute your live elevation, wilderness weather, and survival physiological risk. Without location permission, vital safety calculations cannot run.
             </p>
 
-            <div style={{
-              background: 'var(--bg-void)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '12px 14px',
-              border: '1px solid var(--line)',
-              fontSize: '0.78rem',
-              color: 'var(--txt-low)',
-              textAlign: 'left',
-              lineHeight: 1.45,
-              marginBottom: 20,
-            }}>
-              <strong style={{ color: 'var(--fern)' }}>How to enable:</strong> Tap the lock or tune icon in your browser's address bar, set <em>Location</em> to <em>Allow</em>, and tap <strong>Enable Location / Try Again</strong> below.
-            </div>
+            {isMobileMode ? (
+              <div style={{
+                background: 'var(--bg-void)',
+                borderRadius: 'var(--radius-md)',
+                padding: '12px 14px',
+                border: '1px solid var(--line)',
+                fontSize: '0.78rem',
+                color: 'var(--txt-med)',
+                textAlign: 'left',
+                lineHeight: 1.45,
+                marginBottom: 18,
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 10,
+                  borderBottom: '1px solid var(--line)',
+                  paddingBottom: 8,
+                }}>
+                  <span style={{
+                    fontWeight: 700,
+                    fontSize: '0.72rem',
+                    color: 'var(--fern)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                  }}>
+                    📱 Mobile Device Steps
+                  </span>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button
+                      type="button"
+                      onClick={() => setMobilePlatform('android')}
+                      style={{
+                        padding: '2px 8px',
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        borderRadius: 'var(--radius-pill)',
+                        border: '1px solid',
+                        borderColor: mobilePlatform === 'android' ? 'var(--fern)' : 'var(--line)',
+                        background: mobilePlatform === 'android' ? 'rgba(52, 183, 136, 0.16)' : 'transparent',
+                        color: mobilePlatform === 'android' ? 'var(--fern)' : 'var(--txt-low)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      🤖 Android
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMobilePlatform('ios')}
+                      style={{
+                        padding: '2px 8px',
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        borderRadius: 'var(--radius-pill)',
+                        border: '1px solid',
+                        borderColor: mobilePlatform === 'ios' ? 'var(--fern)' : 'var(--line)',
+                        background: mobilePlatform === 'ios' ? 'rgba(52, 183, 136, 0.16)' : 'transparent',
+                        color: mobilePlatform === 'ios' ? 'var(--fern)' : 'var(--txt-low)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      🍏 iPhone
+                    </button>
+                  </div>
+                </div>
+
+                {mobilePlatform === 'android' ? (
+                  <ol style={{ margin: 0, paddingLeft: 18, fontSize: '0.78rem', color: 'var(--txt-med)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <li>
+                      Tap the <strong>tune / lock icon 🔒</strong> in Chrome's address bar (or tap <strong>⋮</strong> menu ➔ <em>Site settings</em>).
+                    </li>
+                    <li>
+                      Tap <strong>Permissions</strong> ➔ <strong>Location</strong> ➔ select <strong>Allow</strong>.
+                    </li>
+                    <li>
+                      Make sure your phone's <strong>Location (GPS)</strong> is turned ON in Android Quick Settings.
+                    </li>
+                    <li>
+                      Tap <strong>Enable Location / Try Again</strong> below.
+                    </li>
+                  </ol>
+                ) : (
+                  <ol style={{ margin: 0, paddingLeft: 18, fontSize: '0.78rem', color: 'var(--txt-med)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <li>
+                      Tap the <strong>aA</strong> icon on the left side of Safari's address bar.
+                    </li>
+                    <li>
+                      Tap <strong>Website Settings</strong> ➔ <strong>Location</strong> ➔ select <strong>Allow</strong>.
+                    </li>
+                    <li>
+                      If prompted or blocked, check iPhone <strong>Settings</strong> ➔ <strong>Privacy & Security</strong> ➔ <strong>Location Services</strong> ➔ ensure <em>Safari Websites</em> is enabled.
+                    </li>
+                    <li>
+                      Tap <strong>Enable Location / Try Again</strong> below.
+                    </li>
+                  </ol>
+                )}
+              </div>
+            ) : (
+              <div style={{
+                background: 'var(--bg-void)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '12px 14px',
+                border: '1px solid var(--line)',
+                fontSize: '0.78rem',
+                color: 'var(--txt-low)',
+                textAlign: 'left',
+                lineHeight: 1.45,
+                marginBottom: 20,
+              }}>
+                <strong style={{ color: 'var(--fern)' }}>How to enable:</strong> Click the lock 🔒 or tune icon in your browser's address bar, set <em>Location</em> to <em>Allow</em>, and click <strong>Enable Location / Try Again</strong> below.
+              </div>
+            )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button
