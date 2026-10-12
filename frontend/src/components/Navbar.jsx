@@ -224,19 +224,8 @@ export default function Navbar({
             }}
           >
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--txt-low)', fontWeight: 700 }}>
-                Navigation & Modes
-              </div>
-              <button
-                onClick={() => setIsMenuOpen(false)}
-                style={{
-                  background: 'none', border: 'none', color: 'var(--txt-med)',
-                  cursor: 'pointer', fontSize: '0.82rem', padding: '2px 6px',
-                }}
-              >
-                ✕ Close
-              </button>
+            <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--txt-low)', fontWeight: 700 }}>
+              Navigation & Modes
             </div>
 
             {/* Navigation Tabs Grid */}
