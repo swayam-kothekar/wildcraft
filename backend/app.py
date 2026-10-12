@@ -133,6 +133,7 @@ def get_survival_catalog(q: Optional[str] = Query(None), category: Optional[str]
     return atlas_survival_store.query_survival_catalog(query=q or "", category=category)
 
 @app.post("/api/backcountry-log")
+@app.post("/api/atlas-logbook")
 def save_backcountry_log(req: BackcountryLogRequest):
     """
     Saves backcountry logbook into MongoDB Atlas (long-term memory).
@@ -142,6 +143,8 @@ def save_backcountry_log(req: BackcountryLogRequest):
     return atlas_survival_store.save_backcountry_log(data)
 
 @app.get("/api/backcountry-logs")
+@app.get("/api/atlas-logbook")
+@app.get("/api/atlas-logbooks")
 def get_backcountry_logs():
     """
     Retrieves stored backcountry logs from MongoDB Atlas.

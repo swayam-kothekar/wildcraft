@@ -37,10 +37,13 @@ export default function BackcountryLogbook({ riskData }) {
 
   const fetchLogs = async () => {
     try {
-      const res = await fetch(apiUrl('/api/atlas-logbook?limit=10'));
+      const res = await fetch(apiUrl('/api/backcountry-logs'));
       if (res.ok) {
         const d = await res.json();
-        setLogs(d.entries || []);
+        const list = Array.isArray(d) ? d : (d.entries || []);
+        if (list) {
+          setLogs(list);
+        }
       }
     } catch {
       // Offline fallback: keep local
@@ -60,24 +63,26 @@ export default function BackcountryLogbook({ riskData }) {
       risk_score: riskData?.risk_score_index ?? 42.0,
       notes: notes.trim(),
       gear_items: ['Tarp', 'Paracord', 'Sawyer Mini', 'Ferro Rod'],
+      timestamp: Date.now() / 1000,
     };
 
     try {
-      const res = await fetch(apiUrl('/api/atlas-logbook'), {
+      const res = await fetch(apiUrl('/api/backcountry-log'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       if (res.ok) {
         setNotes('');
-        fetchLogs();
+        await fetchLogs();
+      } else {
+        // Optimistic/fallback update
+        setLogs(prev => [payload, ...prev]);
+        setNotes('');
       }
     } catch {
       // Local fallback append
-      setLogs(prev => [
-        { ...payload, timestamp: Date.now() / 1000 },
-        ...prev,
-      ]);
+      setLogs(prev => [payload, ...prev]);
       setNotes('');
     } finally {
       setSaving(false);
