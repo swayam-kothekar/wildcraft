@@ -215,10 +215,9 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
       </div>
 
       {/* Input & Action */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24, width: '100%' }}>
+      <div className="gemma-input-wrap">
         <input
-          className="field-input"
-          style={{ width: '100%', boxSizing: 'border-box' }}
+          className="field-input gemma-input-field"
           type="text"
           placeholder="Ask about fire starting, first aid, water purification…"
           value={prompt}
@@ -226,10 +225,9 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
           onKeyDown={e => e.key === 'Enter' && !loading && askGemma()}
         />
         <button
-          className="btn-primary"
+          className="btn-primary gemma-input-btn"
           onClick={() => askGemma()}
           disabled={loading}
-          style={{ width: '100%', boxSizing: 'border-box', padding: '12px 20px', fontSize: '0.9rem' }}
         >
           {loading ? '◌ Thinking…' : '↑ Ask Gemma'}
         </button>

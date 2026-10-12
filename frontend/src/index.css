@@ -69,19 +69,81 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  transition: background 0.3s, color 0.3s;
+  transition: background 0.25s, color 0.25s;
 }
 
-/* ─── HIGH VIS MODE ─── */
-body.high-vis-mode { background: #ffe600 !important; color: #000 !important; }
-body.high-vis-mode .nav-bar,
-body.high-vis-mode .tab-bar,
-body.high-vis-mode .wc-card,
-body.high-vis-mode input,
-body.high-vis-mode textarea,
-body.high-vis-mode button {
-  background: #fff !important; color: #000 !important;
-  border-color: #000 !important;
+/* ─── LIGHT MODE ─── */
+body.light-mode {
+  --bg-void:       #f7f9f6;
+  --bg-base:       #ffffff;
+  --bg-raised:     #ffffff;
+  --bg-float:      #edf2ec;
+  --bg-sun:        #ffffff;
+
+  --txt-high:      #121b14;
+  --txt-med:       #384f3e;
+  --txt-low:       #5d7a66;
+  --txt-ghost:     #8fa896;
+
+  --line:          rgba(45, 106, 79, 0.14);
+  --line-mid:      rgba(45, 106, 79, 0.28);
+  --line-bright:   rgba(45, 106, 79, 0.6);
+
+  --moss:          #2d6a4f;
+  --pine:          #1b4332;
+  --fern:          #2d6a4f;
+  --sage:          #40916c;
+
+  background: var(--bg-void);
+  color: var(--txt-high);
+}
+
+body.light-mode .nav-bar,
+body.light-mode .tab-bar {
+  background: rgba(247, 249, 246, 0.94);
+  border-bottom: 1px solid var(--line);
+}
+
+body.light-mode .wc-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-color: rgba(45, 106, 79, 0.15);
+}
+
+body.light-mode .field-input {
+  background: #ffffff;
+  border: 1px solid rgba(45, 106, 79, 0.2);
+  color: #121b14;
+}
+
+body.light-mode .field-input:focus {
+  border-color: var(--fern);
+}
+
+body.light-mode .btn-outline {
+  border-color: rgba(45, 106, 79, 0.25);
+  color: #2d6a4f;
+}
+
+body.light-mode .chip {
+  background: #ffffff;
+  border-color: rgba(45, 106, 79, 0.18);
+  color: #384f3e;
+}
+
+body.light-mode .chip.active {
+  background: rgba(45, 106, 79, 0.12);
+  border-color: var(--fern);
+  color: var(--fern);
+}
+
+body.light-mode .tab-btn {
+  color: var(--txt-med);
+}
+
+body.light-mode .tab-btn.active {
+  background: rgba(45, 106, 79, 0.1);
+  color: var(--fern);
+  border-color: rgba(45, 106, 79, 0.3);
 }
 
 /* ─── Typography ─── */
@@ -484,24 +546,77 @@ input[type='range']::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(52,
 ::-webkit-scrollbar-track { background: var(--bg-void); }
 ::-webkit-scrollbar-thumb { background: rgba(52,183,136,0.3); border-radius: 3px; }
 
+/* ─── Gemma Bushcraft Input Row Responsive ─── */
+.gemma-input-wrap {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  width: 100%;
+}
+.gemma-input-field {
+  flex: 1;
+}
+.gemma-input-btn {
+  min-width: 140px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ─── Responsive Navbar Controls ─── */
+.nav-desktop-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.nav-mobile-toggle {
+  display: none !important;
+}
+
+@media (min-width: 769px) {
+  .mobile-menu-drawer,
+  .mobile-menu-backdrop,
+  .nav-mobile-toggle {
+    display: none !important;
+  }
+}
+
 /* ─── Responsive Media Queries ─── */
 @media (max-width: 768px) {
+  :root {
+    --tab-h: 0px !important;
+  }
+  .tab-bar {
+    display: none !important;
+  }
+  .nav-desktop-controls {
+    display: none !important;
+  }
+  .nav-mobile-toggle {
+    display: inline-flex !important;
+  }
+
+  .gemma-input-wrap {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .gemma-input-field {
+    width: 100%;
+  }
+  .gemma-input-btn {
+    width: 100%;
+    padding: 12px 18px;
+    font-size: 0.9rem;
+  }
+
   .nav-bar {
     padding: 0 16px;
     gap: 8px;
   }
   .nav-logo-icon { width: 32px; height: 32px; font-size: 16px; }
-  .nav-bar > div:nth-child(2) { display: none; } /* Hide ticker on small screens */
-
-  .tab-bar {
-    padding: 0 12px;
-    gap: 4px;
-    justify-content: flex-start;
-  }
-  .tab-btn {
-    padding: 6px 12px;
-    font-size: 0.78rem;
-  }
+  .nav-bar > div.alert-ticker { display: none !important; }
 
   .section-wrap {
     padding: 24px 16px 48px;
@@ -540,7 +655,7 @@ input[type='range']::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(52,
 @media (max-width: 480px) {
   :root {
     --nav-h: 60px;
-    --tab-h: 46px;
+    --tab-h: 0px;
   }
   .btn-primary, .btn-outline, .btn-danger {
     padding: 9px 14px;

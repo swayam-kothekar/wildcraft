@@ -72,6 +72,8 @@ export default function TabPFNRiskPredictor({ liveConditions, onRiskUpdate }) {
     }
   }, [liveConditions]);
 
+  const lastScoreRef = React.useRef(null);
+
   const predict = async () => {
     setLoading(true);
     try {
@@ -87,7 +89,10 @@ export default function TabPFNRiskPredictor({ liveConditions, onRiskUpdate }) {
       });
       const data = await res.json();
       setResult(data);
-      if (onRiskUpdate) onRiskUpdate(data);
+      if (onRiskUpdate && data?.risk_score_index !== lastScoreRef.current) {
+        lastScoreRef.current = data?.risk_score_index;
+        onRiskUpdate(data);
+      }
     } catch {
       const fallback = {
         risk_score_index: 48.5,
@@ -99,7 +104,10 @@ export default function TabPFNRiskPredictor({ liveConditions, onRiskUpdate }) {
         model_used: 'Prior Labs TabPFN Survival Foundation Model',
       };
       setResult(fallback);
-      if (onRiskUpdate) onRiskUpdate(fallback);
+      if (onRiskUpdate && fallback.risk_score_index !== lastScoreRef.current) {
+        lastScoreRef.current = fallback.risk_score_index;
+        onRiskUpdate(fallback);
+      }
     } finally {
       setLoading(false);
     }

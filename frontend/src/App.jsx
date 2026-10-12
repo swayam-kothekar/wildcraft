@@ -8,9 +8,53 @@ import PlantSafetyScanner from './components/PlantSafetyScanner';
 import BackcountryLogbook from './components/BackcountryLogbook';
 import AboutPage from './components/AboutPage';
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('WildCraft UI Error:', error, errorInfo);
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.activeTab !== this.props.activeTab && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="section-container" style={{ padding: '60px 20px', textAlign: 'center' }}>
+          <div className="wc-card" style={{ maxWidth: 460, margin: '0 auto', padding: '32px 24px' }}>
+            <div style={{ fontSize: '2rem', marginBottom: 12 }}>🌲</div>
+            <h3 style={{ color: 'var(--txt-high)', marginBottom: 8, fontSize: '1.1rem' }}>Display Recovery</h3>
+            <p style={{ color: 'var(--txt-med)', fontSize: '0.84rem', marginBottom: 20, lineHeight: 1.5 }}>
+              This tab encountered a temporary rendering issue.
+            </p>
+            <button
+              className="btn-primary"
+              onClick={() => {
+                this.setState({ hasError: false });
+                if (this.props.onReset) this.props.onReset();
+              }}
+              style={{ padding: '8px 20px', fontSize: '0.82rem' }}
+            >
+              Return to Overview
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
-  const [highVisMode, setHighVisMode] = useState(false);
+  const [lightMode, setLightMode] = useState(false);
   const [offlineBackcountryMode, setOfflineBackcountryMode] = useState(false);
   const [trailAlerts, setTrailAlerts] = useState(null);
   const [riskData, setRiskData] = useState(null);
@@ -18,10 +62,15 @@ export default function App() {
   const [liveConditions, setLiveConditions] = useState(null);
   const [gpsLoading, setGpsLoading] = useState(false);
 
-  // High-vis body class
+  // Light mode body class
   useEffect(() => {
-    document.body.classList.toggle('high-vis-mode', highVisMode);
-  }, [highVisMode]);
+    document.body.classList.toggle('light-mode', lightMode);
+  }, [lightMode]);
+
+  // Memoized risk telemetry handler to prevent render loops
+  const handleRiskUpdate = React.useCallback((data) => {
+    setRiskData(data);
+  }, []);
 
   // GPS + weather fetch
   const requestLocation = () => {
@@ -126,7 +175,7 @@ export default function App() {
           <div className="section-container animate-fade-up">
             <TabPFNRiskPredictor
               liveConditions={liveConditions}
-              onRiskUpdate={setRiskData}
+              onRiskUpdate={handleRiskUpdate}
             />
           </div>
         );
@@ -167,57 +216,13 @@ export default function App() {
     }
   };
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-  componentDidCatch(error, errorInfo) {
-    console.error('WildCraft UI Error:', error, errorInfo);
-  }
-  componentDidUpdate(prevProps) {
-    if (prevProps.activeTab !== this.props.activeTab && this.state.hasError) {
-      this.setState({ hasError: false });
-    }
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="section-container" style={{ padding: '60px 20px', textAlign: 'center' }}>
-          <div className="wc-card" style={{ maxWidth: 460, margin: '0 auto', padding: '32px 24px' }}>
-            <div style={{ fontSize: '2rem', marginBottom: 12 }}>🌲</div>
-            <h3 style={{ color: 'var(--txt-high)', marginBottom: 8, fontSize: '1.1rem' }}>Display Recovery</h3>
-            <p style={{ color: 'var(--txt-med)', fontSize: '0.84rem', marginBottom: 20, lineHeight: 1.5 }}>
-              This tab encountered a temporary rendering issue.
-            </p>
-            <button
-              className="btn-primary"
-              onClick={() => {
-                this.setState({ hasError: false });
-                if (this.props.onReset) this.props.onReset();
-              }}
-              style={{ padding: '8px 20px', fontSize: '0.82rem' }}
-            >
-              Return to Overview
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
   return (
     <>
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        highVisMode={highVisMode}
-        setHighVisMode={setHighVisMode}
+        lightMode={lightMode}
+        setLightMode={setLightMode}
         offlineBackcountryMode={offlineBackcountryMode}
         setOfflineBackcountryMode={setOfflineBackcountryMode}
         trailAlerts={trailAlerts}
