@@ -179,22 +179,19 @@ class GemmaSurvivalAgent:
     async def _call_cloud_gemma(self, user_message: str) -> str | None:
         """Call Google Gemma / Gemini cloud API with automatic model fallback."""
         if not self.api_key:
+            print("[WildCraft] No GEMINI_API_KEY found in environment variables.")
             return None
 
+        # Prioritize fast, high-availability production models with native system instruction support
         candidate_models = [
             os.getenv("GEMMA_CLOUD_MODEL"),
+            "gemini-3.5-flash-lite",
+            "gemini-flash-lite-latest",
+            "gemini-3.8-flash",
             "gemini-flash-latest",
             "gemma-4-26b-a4b-it",
-            "gemini-2.5-flash-lite",
-            "gemma-4-31b-it",
         ]
         candidate_models = [m for m in candidate_models if m]
-
-        payload = {
-            "system_instruction": {"parts": [{"text": GEMMA_SYSTEM_TEXT}]},
-            "contents": [{"parts": [{"text": user_message}]}],
-            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 450},
-        }
 
         async with httpx.AsyncClient(timeout=20.0) as client:
             for model in candidate_models:
@@ -203,14 +200,31 @@ class GemmaSurvivalAgent:
                         f"https://generativelanguage.googleapis.com/v1beta/"
                         f"models/{model}:generateContent?key={self.api_key}"
                     )
+                    # Gemma open-weight models reject system_instruction field in v1beta; embed in content instead
+                    if "gemma" in model.lower():
+                        payload = {
+                            "contents": [{"parts": [{"text": f"{GEMMA_SYSTEM_TEXT}\n\n{user_message}"}]}],
+                            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 800},
+                        }
+                    else:
+                        payload = {
+                            "system_instruction": {"parts": [{"text": GEMMA_SYSTEM_TEXT}]},
+                            "contents": [{"parts": [{"text": user_message}]}],
+                            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 600},
+                        }
+
                     res = await client.post(url, headers={"Content-Type": "application/json"}, json=payload)
                     if res.status_code == 200:
                         candidates = res.json().get("candidates", [])
                         if candidates:
                             parts = candidates[0].get("content", {}).get("parts", [])
-                            texts = [p["text"] for p in parts if "text" in p]
+                            # Extract parts that are not internal reasoning thoughts
+                            texts = [p["text"] for p in parts if "text" in p and not p.get("thought", False)]
+                            if not texts:
+                                texts = [p["text"] for p in parts if "text" in p]
                             if texts:
                                 self._active_cloud_model = model
+                                print(f"[WildCraft] Cloud AI model '{model}' succeeded.")
                                 return texts[-1].strip()
                     else:
                         print(f"[WildCraft] Cloud model '{model}' returned HTTP {res.status_code}")
@@ -253,14 +267,14 @@ class GemmaSurvivalAgent:
             f"As a wilderness survival expert, give me a factual 2-3 sentence answer about: {user_prompt}"
         )
 
-        # ── Cloud Gemma ────────────────────────────────────────────────────
+        # ── 1. Cloud Gemma / Gemini (Primary) ──────────────────────────────
         if self.api_key:
             text = await self._call_cloud_gemma(user_message)
             if text and _is_bad_response(text):
                 print("[WildCraft] Cloud response poor, retrying")
                 text = await self._call_cloud_gemma(retry_message)
             if text and not _is_bad_response(text):
-                active_model = getattr(self, "_active_cloud_model", "gemma")
+                active_model = getattr(self, "_active_cloud_model", "gemini")
                 model_label = "Google Gemma (Open-Weight Cloud Engine)" if "gemma" in active_model else "Google Gemini Intelligence"
                 return {
                     "response": clean_transcript_text(_safety_post_process(text, user_prompt)),
@@ -268,19 +282,27 @@ class GemmaSurvivalAgent:
                     "execution": "Cloud Open Runtime (Google AI Studio)",
                     "status": "online",
                 }
+        else:
+            print("[WildCraft] Warning: No GEMINI_API_KEY / GEMMA_API_KEY configured in environment variables.")
 
-        # ── Local Ollama ───────────────────────────────────────────────────
-        text = await self._call_ollama_best(user_message, temperature=0.4)
-        if text and _is_bad_response(text):
-            print(f"[WildCraft] Ollama response poor ('{text[:60]}…'), retrying with rephrased prompt")
-            text = await self._call_ollama_best(retry_message, temperature=0.5)
-        if text and not _is_bad_response(text):
-            return {
-                "response": clean_transcript_text(_safety_post_process(text, user_prompt)),
-                "model": "Gemma 2B (On-Device Local Edge Open-Weight Engine)",
-                "execution": "Local Edge Device (0 Cell Signal Required)",
-                "status": "local_edge",
-            }
+        # ── 2. Local Ollama (Edge fallback for local workstations) ─────────
+        # On hosted cloud platforms (e.g. Render), skip localhost Ollama probe to avoid socket timeouts
+        is_cloud_env = bool(os.getenv("RENDER") or os.getenv("VERCEL"))
+        is_localhost_ollama = "localhost" in self.ollama_url or "127.0.0.1" in self.ollama_url
+        if not (is_cloud_env and is_localhost_ollama):
+            text = await self._call_ollama_best(user_message, temperature=0.4)
+            if text and _is_bad_response(text):
+                print(f"[WildCraft] Ollama response poor ('{text[:60]}…'), retrying with rephrased prompt")
+                text = await self._call_ollama_best(retry_message, temperature=0.5)
+            if text and not _is_bad_response(text):
+                return {
+                    "response": clean_transcript_text(_safety_post_process(text, user_prompt)),
+                    "model": "Gemma 2B (On-Device Local Edge Open-Weight Engine)",
+                    "execution": "Local Edge Device (0 Cell Signal Required)",
+                    "status": "local_edge",
+                }
+        else:
+            print("[WildCraft] Hosted cloud runtime detected: skipping localhost Ollama probe.")
 
         # ── Offline fallback ───────────────────────────────────────────────
         print("[WildCraft] All LLM attempts failed, using offline fallback")
