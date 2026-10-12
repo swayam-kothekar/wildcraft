@@ -61,6 +61,7 @@ export default function App() {
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [liveConditions, setLiveConditions] = useState(null);
   const [gpsLoading, setGpsLoading] = useState(false);
+  const [locationDeniedModal, setLocationDeniedModal] = useState(false);
 
   // Light mode body class
   useEffect(() => {
@@ -74,10 +75,14 @@ export default function App() {
 
   // GPS + weather fetch
   const requestLocation = () => {
-    if (!('geolocation' in navigator)) return;
+    if (!('geolocation' in navigator)) {
+      setLocationDeniedModal(true);
+      return;
+    }
     setGpsLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
+        setLocationDeniedModal(false);
         const { latitude: lat, longitude: lon } = pos.coords;
         let gotLive = false;
 
@@ -141,7 +146,13 @@ export default function App() {
 
         setGpsLoading(false);
       },
-      (err) => { console.warn('GPS error:', err); setGpsLoading(false); }
+      (err) => {
+        console.warn('GPS error:', err);
+        setGpsLoading(false);
+        if (err && (err.code === err.PERMISSION_DENIED || err.code === 1)) {
+          setLocationDeniedModal(true);
+        }
+      }
     );
   };
 
@@ -233,6 +244,119 @@ export default function App() {
           {renderContent()}
         </ErrorBoundary>
       </main>
+
+      {/* ── Location Denied / Required Modal ── */}
+      {locationDeniedModal && (
+        <div
+          id="location-permission-modal"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            background: 'rgba(0, 0, 0, 0.78)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          }}
+        >
+          <div
+            className="wc-card"
+            style={{
+              maxWidth: 460,
+              width: '100%',
+              padding: '28px 22px',
+              textAlign: 'center',
+              border: '1px solid rgba(231, 111, 81, 0.45)',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.8), 0 0 20px rgba(231, 111, 81, 0.2)',
+              borderRadius: 'var(--radius-lg)',
+              animation: 'fade-up 0.3s ease',
+            }}
+          >
+            <div style={{
+              width: 56,
+              height: 56,
+              margin: '0 auto 16px',
+              borderRadius: '50%',
+              background: 'rgba(231, 111, 81, 0.12)',
+              border: '1px solid rgba(231, 111, 81, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.75rem',
+            }}>
+              📍
+            </div>
+
+            <div style={{
+              fontSize: '0.7rem',
+              fontWeight: 800,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--ember)',
+              marginBottom: 6,
+            }}>
+              Location Access Required
+            </div>
+
+            <h3 style={{
+              fontSize: '1.25rem',
+              fontWeight: 800,
+              color: 'var(--txt-high)',
+              marginBottom: 10,
+              lineHeight: 1.25,
+            }}>
+              We Can't Work Without Your Location
+            </h3>
+
+            <p style={{
+              fontSize: '0.85rem',
+              color: 'var(--txt-med)',
+              lineHeight: 1.55,
+              marginBottom: 16,
+            }}>
+              WildCraft AI relies on real-time GPS coordinates to compute your live elevation, wilderness weather, and survival physiological risk. Without location permission, vital safety calculations cannot run.
+            </p>
+
+            <div style={{
+              background: 'var(--bg-void)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '12px 14px',
+              border: '1px solid var(--line)',
+              fontSize: '0.78rem',
+              color: 'var(--txt-low)',
+              textAlign: 'left',
+              lineHeight: 1.45,
+              marginBottom: 20,
+            }}>
+              <strong style={{ color: 'var(--fern)' }}>How to enable:</strong> Tap the lock or tune icon in your browser's address bar, set <em>Location</em> to <em>Allow</em>, and tap <strong>Enable Location / Try Again</strong> below.
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                id="btn-retry-location"
+                className="btn-primary"
+                onClick={() => {
+                  requestLocation();
+                }}
+                style={{ width: '100%', padding: '12px 18px', fontSize: '0.88rem' }}
+              >
+                🔄 Enable Location / Try Again
+              </button>
+              <button
+                id="btn-dismiss-location"
+                className="btn-outline"
+                onClick={() => setLocationDeniedModal(false)}
+                style={{ width: '100%', padding: '9px 16px', fontSize: '0.78rem', opacity: 0.8 }}
+              >
+                Continue with Simulated Trailhead (Restricted)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

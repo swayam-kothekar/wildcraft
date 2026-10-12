@@ -1,83 +1,101 @@
 import React, { useState, useEffect } from 'react';
 import { apiUrl } from '../config/api';
 
-const SAMPLE_LOG = {
-  hiker_name: 'Alex Rivers',
-  location_name: 'Desolation Wilderness Loop',
-  risk_score: 32,
-  notes: 'Constructed Debris A-Frame shelter near Granite Lake. Water filtered via bio-sand method.',
-  timestamp: '2026-10-07 14:20',
-};
+const TEMPLATES = [
+  '⛺ Constructed A-Frame tarp shelter with paracord ridge line.',
+  '💧 Filtered 2.5L water from mountain stream using Sawyer Mini.',
+  '🔥 Bow drill fire started using dried cedar hearth board.',
+  '🧭 Bearing drift observed due to magnetic anomaly on ridge.',
+  '⚠️ Sighted fresh bear tracks heading south toward creek bed.',
+];
 
 function RiskPip({ score }) {
-  const num = typeof score === 'number' ? score : (Number(score) || 0);
-  const color = num >= 65 ? 'var(--danger)' : num >= 35 ? 'var(--amber)' : 'var(--fern)';
+  let color = '#22c55e';
+  let label = 'Low';
+  if (score > 65) { color = '#ef4444'; label = 'High'; }
+  else if (score > 35) { color = '#f59e0b'; label = 'Moderate'; }
+
   return (
     <span style={{
-      fontFamily: 'var(--mono)', fontSize: '0.78rem',
-      color, fontWeight: 600,
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      padding: '2px 8px', borderRadius: 9999,
+      background: `${color}18`, border: `1px solid ${color}44`,
+      fontSize: '0.72rem', fontWeight: 700, color,
     }}>
-      {num}/100
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: color }} />
+      {label} · {typeof score === 'number' ? score.toFixed(1) : score}
     </span>
   );
 }
 
 export default function BackcountryLogbook({ riskData }) {
+  const [logs, setLogs] = useState([]);
   const [hikerName, setHikerName] = useState('Alex Rivers');
   const [locationName, setLocationName] = useState('Sierra High Route Trail');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
-  const [logs, setLogs] = useState([SAMPLE_LOG]);
 
-  // Load persisted logs from MongoDB Atlas
+  const fetchLogs = async () => {
+    try {
+      const res = await fetch(apiUrl('/api/atlas-logbook?limit=10'));
+      if (res.ok) {
+        const d = await res.json();
+        setLogs(d.entries || []);
+      }
+    } catch {
+      // Offline fallback: keep local
+    }
+  };
+
   useEffect(() => {
-    fetch(apiUrl('/api/backcountry-logs'))
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setLogs(data);
-        }
-      })
-      .catch(() => {});
+    fetchLogs();
   }, []);
 
   const saveLog = async () => {
     if (!notes.trim()) return;
     setSaving(true);
-    const entry = {
-      hiker_name: hikerName, location_name: locationName,
-      notes, risk_score: riskData?.risk_score_index ?? 28,
-      timestamp: new Date().toLocaleString(),
+    const payload = {
+      hiker_name: hikerName || 'Backcountry Hiker',
+      location_name: locationName || 'Cascade Wilderness',
+      risk_score: riskData?.risk_score_index ?? 42.0,
+      notes: notes.trim(),
+      gear_items: ['Tarp', 'Paracord', 'Sawyer Mini', 'Ferro Rod'],
     };
-    try {
-      await fetch(apiUrl('/api/backcountry-log'), {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(entry),
-      });
-    } catch { /* offline fallback */ }
-    setLogs([entry, ...logs]);
-    setNotes('');
-    setSaving(false);
-  };
 
-  const TEMPLATES = [
-    '🏕️ Constructed A-Frame debris shelter with pine needle insulation.',
-    '💧 Filtered 2.5L water from mountain stream using 3-stage sand system.',
-    '⚠️ Trail hazard: fallen timber blocking pass at 2,400m elevation.',
-    '🌤️ Weather shift: wind increasing from NW, temperature dropping rapidly.',
-  ];
+    try {
+      const res = await fetch(apiUrl('/api/atlas-logbook'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        setNotes('');
+        fetchLogs();
+      }
+    } catch {
+      // Local fallback append
+      setLogs(prev => [
+        { ...payload, timestamp: Date.now() / 1000 },
+        ...prev,
+      ]);
+      setNotes('');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const exportLogs = () => {
     const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `wildcraft_trail_log_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `wildcraft-logbook-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="section-wrap anim-fade-up">
+    <div className="section-wrap anim-fade-up" style={{ width: '100%', maxWidth: 1080, margin: '0 auto', minWidth: 0 }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <div className="section-eyebrow">MongoDB Atlas Cloud Database</div>
@@ -87,9 +105,9 @@ export default function BackcountryLogbook({ riskData }) {
         </p>
       </div>
 
-      <div className="grid-2" style={{ alignItems: 'start' }}>
-        {/* Form */}
-        <div className="wc-card" style={{ padding: '24px 24px 22px' }}>
+      <div className="grid-2 logbook-grid" style={{ alignItems: 'start', minWidth: 0, width: '100%' }}>
+        {/* Form Card */}
+        <div className="wc-card logbook-form-card" style={{ minWidth: 0, width: '100%' }}>
           <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--txt-low)', marginBottom: 16 }}>
             New Entry
           </div>
@@ -113,12 +131,13 @@ export default function BackcountryLogbook({ riskData }) {
               <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--txt-low)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                 Quick Note Templates
               </label>
-              <div className="chip-strip" style={{ marginBottom: 10 }}>
+              <div className="chip-strip" style={{ marginBottom: 10, maxWidth: '100%', minWidth: 0 }}>
                 {TEMPLATES.map((t, idx) => (
                   <button
                     key={idx}
                     className="chip"
                     onClick={() => setNotes(prev => (prev ? `${prev}\n${t}` : t))}
+                    style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
                   >
                     {t.slice(0, 22)}…
                   </button>
@@ -135,24 +154,23 @@ export default function BackcountryLogbook({ riskData }) {
             </div>
 
             {riskData && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-void)', borderRadius: 8, border: '1px solid var(--line)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-void)', borderRadius: 8, border: '1px solid var(--line)', flexWrap: 'wrap', gap: 8 }}>
                 <span style={{ fontSize: '0.78rem', color: 'var(--txt-low)' }}>Current risk score</span>
                 <RiskPip score={riskData.risk_score_index} />
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+            {/* Mobile Responsive Action Buttons Row */}
+            <div className="logbook-btn-row">
               <button
-                className="btn-primary"
-                style={{ flex: 1, borderRadius: 'var(--radius-sm)' }}
+                className="btn-primary logbook-save-btn"
                 onClick={saveLog}
                 disabled={saving || !notes.trim()}
               >
                 {saving ? '◌ Saving…' : '↑ Save Entry to Atlas'}
               </button>
               <button
-                className="btn-outline"
-                style={{ borderRadius: 'var(--radius-sm)' }}
+                className="btn-outline logbook-export-btn"
                 onClick={exportLogs}
               >
                 ↓ Export Logs
@@ -161,15 +179,15 @@ export default function BackcountryLogbook({ riskData }) {
           </div>
         </div>
 
-        {/* Log history */}
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        {/* Log history Card */}
+        <div style={{ minWidth: 0, width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
             <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--txt-low)' }}>
               Logbook History — {logs.length} {logs.length === 1 ? 'entry' : 'entries'}
             </div>
             <button
               className="btn-outline"
-              style={{ fontSize: '0.72rem', padding: '4px 10px' }}
+              style={{ fontSize: '0.72rem', padding: '5px 12px' }}
               onClick={exportLogs}
             >
               📥 Export JSON
@@ -177,8 +195,8 @@ export default function BackcountryLogbook({ riskData }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {logs.map((log, i) => (
-              <div key={i} className="log-entry">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <div key={i} className="log-entry" style={{ wordBreak: 'break-word', overflowWrap: 'break-word', minWidth: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
                   <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--txt-high)' }}>
                     {log.hiker_name}
                   </span>
@@ -186,7 +204,7 @@ export default function BackcountryLogbook({ riskData }) {
                     {typeof log.timestamp === 'number' ? new Date(log.timestamp * 1000).toLocaleString() : (log.timestamp || 'Recent')}
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '0.75rem', color: 'var(--txt-low)' }}>{log.location_name}</span>
                   <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--txt-ghost)' }} />
                   <RiskPip score={log.risk_score} />

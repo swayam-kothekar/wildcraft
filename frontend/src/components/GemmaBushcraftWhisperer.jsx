@@ -15,6 +15,9 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
   const [response, setResponse] = useState(null);
   const [voiceData, setVoiceData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState(null);
+  const recognitionRef = React.useRef(null);
 
   // Audio player state & refs
   const audioRef = React.useRef(null);
@@ -23,14 +26,83 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
   const [isPlaying, setIsPlaying] = useState(false);
   const [useFallbackTTS, setUseFallbackTTS] = useState(false);
 
-  // Cleanup speech synthesis on unmount
+  // Cleanup speech synthesis and speech recognition on unmount
   useEffect(() => {
     return () => {
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch {}
+      }
     };
   }, []);
+
+  // Voice speech-to-text recognition toggle
+  const toggleListening = () => {
+    const SpeechRecognition =
+      typeof window !== 'undefined' &&
+      (window.SpeechRecognition || window.webkitSpeechRecognition);
+
+    if (!SpeechRecognition) {
+      alert('Voice speech recognition is not supported in this browser. Please use Chrome, Safari, or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {}
+      }
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setSpeechError(null);
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (transcript) {
+          setPrompt(transcript);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn('Speech recognition error:', event.error);
+        setIsListening(false);
+        if (event.error === 'not-allowed') {
+          setSpeechError('Microphone permission denied. Please allow microphone access in your browser.');
+        } else if (event.error !== 'no-speech') {
+          setSpeechError(`Voice input error: ${event.error}`);
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('Speech recognition failed to start:', err);
+      setIsListening(false);
+    }
+  };
 
   // Auto-fill if a plant topic was selected from Field Manual
   useEffect(() => {
@@ -216,14 +288,37 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
 
       {/* Input & Action */}
       <div className="gemma-input-wrap">
-        <input
-          className="field-input gemma-input-field"
-          type="text"
-          placeholder="Ask about fire starting, first aid, water purification…"
-          value={prompt}
-          onChange={e => setPrompt(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && !loading && askGemma()}
-        />
+        <div className="gemma-input-field-wrap">
+          <input
+            className={`field-input gemma-input-field ${isListening ? 'listening' : ''}`}
+            type="text"
+            placeholder={isListening ? 'Listening... Speak your question now...' : 'Ask about fire starting, first aid, water purification…'}
+            value={prompt}
+            onChange={e => setPrompt(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !loading && askGemma()}
+          />
+          <button
+            type="button"
+            id="btn-voice-input"
+            className={`btn-mic ${isListening ? 'active' : ''}`}
+            onClick={toggleListening}
+            title={isListening ? 'Stop recording' : 'Voice input (Microphone)'}
+            aria-label="Microphone voice input"
+          >
+            {isListening ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="6" width="12" height="12" rx="2" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+            )}
+          </button>
+        </div>
         <button
           className="btn-primary gemma-input-btn"
           onClick={() => askGemma()}
@@ -232,6 +327,31 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
           {loading ? '◌ Thinking…' : '↑ Ask Gemma'}
         </button>
       </div>
+
+      {/* Voice speech recognition feedback status */}
+      {isListening && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: '0.76rem', color: 'var(--ember)',
+          marginTop: -16, marginBottom: 18,
+          padding: '6px 12px', background: 'rgba(231, 111, 81, 0.08)',
+          borderRadius: 'var(--radius-sm)', border: '1px solid rgba(231, 111, 81, 0.25)',
+        }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--ember)', display: 'inline-block' }} />
+          <span>Listening to your voice… Speak your question, then tap Ask Gemma or press Enter.</span>
+        </div>
+      )}
+
+      {speechError && (
+        <div style={{
+          fontSize: '0.76rem', color: 'var(--danger)',
+          marginTop: -16, marginBottom: 18,
+          padding: '6px 12px', background: 'rgba(230, 57, 70, 0.08)',
+          borderRadius: 'var(--radius-sm)', border: '1px solid rgba(230, 57, 70, 0.25)',
+        }}>
+          {speechError}
+        </div>
+      )}
 
       {/* Response */}
       {response && (
