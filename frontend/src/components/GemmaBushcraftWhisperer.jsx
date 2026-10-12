@@ -18,8 +18,19 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
 
   // Audio player state & refs
   const audioRef = React.useRef(null);
+  const utteranceRef = React.useRef(null);
+  const isPausedRef = React.useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [useFallbackTTS, setUseFallbackTTS] = useState(false);
+
+  // Cleanup speech synthesis on unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Auto-fill if a plant topic was selected from Field Manual
   useEffect(() => {
@@ -35,7 +46,11 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
     setIsPlaying(false);
     setUseFallbackTTS(false);
 
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      isPausedRef.current = false;
+      utteranceRef.current = null;
+    }
 
     try {
       const res = await fetch(apiUrl('/api/survival-guide'), {
@@ -81,17 +96,59 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
   };
 
   const playBrowserTTS = (textToSpeak) => {
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      const txt = textToSpeak || response?.response;
-      if (!txt) return;
-      const u = new SpeechSynthesisUtterance(txt);
-      u.rate = 0.95;
-      u.onend = () => setIsPlaying(false);
-      u.onerror = () => setIsPlaying(false);
-      setIsPlaying(true);
-      window.speechSynthesis.speak(u);
-    }
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    window.speechSynthesis.cancel();
+    isPausedRef.current = false;
+
+    const txt = textToSpeak || response?.response;
+    if (!txt) return;
+
+    const u = new SpeechSynthesisUtterance(txt);
+    utteranceRef.current = u;
+    u.rate = 0.95;
+
+    u.onstart = () => {
+      if (utteranceRef.current === u) {
+        setIsPlaying(true);
+        isPausedRef.current = false;
+      }
+    };
+
+    u.onend = () => {
+      if (utteranceRef.current === u) {
+        setIsPlaying(false);
+        isPausedRef.current = false;
+      }
+    };
+
+    u.onerror = (e) => {
+      // Crucial: Ignore interruption / cancel events triggered by restarting or pausing
+      if (e.error === 'interrupted' || e.error === 'canceled') {
+        return;
+      }
+      if (utteranceRef.current === u) {
+        setIsPlaying(false);
+        isPausedRef.current = false;
+      }
+    };
+
+    u.onpause = () => {
+      if (utteranceRef.current === u) {
+        setIsPlaying(false);
+        isPausedRef.current = true;
+      }
+    };
+
+    u.onresume = () => {
+      if (utteranceRef.current === u) {
+        setIsPlaying(true);
+        isPausedRef.current = false;
+      }
+    };
+
+    setIsPlaying(true);
+    window.speechSynthesis.speak(u);
   };
 
   const handlePlayPause = () => {
@@ -100,15 +157,17 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        audioRef.current.play();
+        audioRef.current.play().catch(() => {});
         setIsPlaying(true);
       }
-    } else if (window.speechSynthesis) {
+    } else if (typeof window !== 'undefined' && window.speechSynthesis) {
       if (isPlaying) {
         window.speechSynthesis.pause();
+        isPausedRef.current = true;
         setIsPlaying(false);
-      } else if (window.speechSynthesis.paused) {
+      } else if (isPausedRef.current && window.speechSynthesis.speaking) {
         window.speechSynthesis.resume();
+        isPausedRef.current = false;
         setIsPlaying(true);
       } else {
         playBrowserTTS();
@@ -119,9 +178,9 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
   const handleRestart = () => {
     if (voiceData?.audio_url && audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play();
+      audioRef.current.play().catch(() => {});
       setIsPlaying(true);
-    } else if (window.speechSynthesis) {
+    } else if (typeof window !== 'undefined' && window.speechSynthesis) {
       playBrowserTTS();
     }
   };
