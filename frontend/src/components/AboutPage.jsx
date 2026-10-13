@@ -1,10 +1,10 @@
 import React from 'react';
 
 const OPEN_REASONS = [
-  { icon: '📵', title: 'Works Without Signal',  body: 'Gemma 2B runs fully on-device. No cell tower, no cloud. The wilderness is the internet.' },
-  { icon: '🔒', title: 'Your Data Stays Yours', body: 'No survival telemetry leaves your device. Open weights mean full privacy, always.' },
+  { icon: '📵', title: 'Built for the Backcountry',  body: 'Gemma open-weight intelligence runs at the edge. When cloud connectivity fades, graceful offline fallbacks keep critical survival guidance available.' },
+  { icon: '🔒', title: 'Your Data Stays Yours', body: 'Open-weight architecture means no proprietary black boxes. Your survival queries are never used to train third-party models.' },
   { icon: '🔧', title: 'Swap & Fine-Tune',       body: 'Open-weight architecture lets you fine-tune for your biome, altitude range, or region.' },
-  { icon: '💸', title: 'Zero Inference Cost',     body: 'Local Gemma has no per-token price. Truly free AI at 3am on a ridgeline.' },
+  { icon: '💸', title: 'Low Inference Cost',     body: 'Open-weight Gemma keeps costs minimal. Survival intelligence that scales without a per-token price tag at every trailhead.' },
 ];
 
 const PARTNERS = [
@@ -82,7 +82,7 @@ export default function AboutPage() {
           </div>
         </div>
         <div style={{ marginTop: 12, fontSize: '0.74rem', color: 'var(--txt-low)', lineHeight: 1.6 }}>
-          <strong>Operational Note:</strong> When disconnected from cellular signal, WildCraft switches to on-device edge fallbacks (local Ollama, physics-calibrated tabular heuristics, and bundled botanical datasets). Live meteorological updates and cloud sync resume upon reconnection.
+          <strong>Operational Note:</strong> WildCraft is architected for resilience. When cloud services are unavailable, the system gracefully degrades to edge-hosted open-weight inference and pre-computed survival heuristics — ensuring guidance remains accessible in low-connectivity environments. Live weather and cloud sync resume on reconnection.
         </div>
       </div>
 
