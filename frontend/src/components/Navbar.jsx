@@ -45,7 +45,11 @@ export default function Navbar({
           style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', flexShrink: 0 }}
           onClick={() => { setActiveTab('home'); setIsMenuOpen(false); }}
         >
-          <div className="nav-logo-icon">🌲</div>
+          <img
+            src="/favicon.svg"
+            alt="WildCraft AI Logo"
+            className="nav-logo-icon"
+          />
           <div>
             <div
               style={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.01em', lineHeight: 1.1 }}

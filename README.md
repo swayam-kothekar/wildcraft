@@ -1,7 +1,52 @@
-# 🌲 WildCraft AI
+<div align="center">
 
-> **Edge-Ready Wilderness Survival Whisperer & Backcountry Physiological Risk Engine**  
-> 🌐 **Live Demo:** [https://wildcraft.swayamk.tech](https://wildcraft.swayamk.tech)
+  <img src="frontend/public/favicon.svg" alt="WildCraft AI Logo" width="80" height="80" />
+
+  # WildCraft AI
+
+  **Edge-Ready Wilderness Survival Whisperer & Backcountry Physiological Risk Engine**
+
+  An intelligent backcountry survival and physiological risk assistant designed with a dual-mode architecture: fully feature-complete when cloud-connected, yet capable of running standalone in disconnected, zero-signal wilderness environments through local on-device fallbacks.
+
+  <p align="center">
+    <a href="https://wildcraft.swayamk.tech"><strong>Explore Live Demo »</strong></a>
+    <br />
+    <br />
+    <a href="#dual-mode-architecture--offline-resilience">Dual-Mode Architecture</a>
+    ·
+    <a href="#architecture">Architecture</a>
+    ·
+    <a href="#repository-structure">Repository Structure</a>
+    ·
+    <a href="#environment-variables">Configuration</a>
+    ·
+    <a href="#local-development-setup">Quickstart</a>
+    ·
+    <a href="#api-reference">API Reference</a>
+  </p>
+
+  <p align="center">
+    <a href="https://wildcraft.swayamk.tech">
+      <img src="https://img.shields.io/badge/Live_Demo-wildcraft.swayamk.tech-059669?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Demo" />
+    </a>
+    <img src="https://img.shields.io/badge/Architecture-Dual--Mode-10b981?style=for-the-badge" alt="Dual-Mode Architecture" />
+    <img src="https://img.shields.io/badge/Resilience-Offline--Edge-047857?style=for-the-badge&logo=signal&logoColor=white" alt="Offline Resilience" />
+    <img src="https://img.shields.io/badge/License-MIT-3b82f6?style=for-the-badge" alt="MIT License" />
+  </p>
+
+  <p align="center">
+    <img src="https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React 19" />
+    <img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
+    <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
+    <img src="https://img.shields.io/badge/Python_3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+" />
+    <img src="https://img.shields.io/badge/Google_Gemma_2-4285F4?style=flat-square&logo=google&logoColor=white" alt="Google Gemma 2" />
+    <img src="https://img.shields.io/badge/Prior_Labs_TabPFN-8B5CF6?style=flat-square" alt="Prior Labs TabPFN" />
+    <img src="https://img.shields.io/badge/MongoDB_Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="MongoDB Atlas" />
+    <img src="https://img.shields.io/badge/ElevenLabs-000000?style=flat-square&logo=elevenlabs&logoColor=white" alt="ElevenLabs" />
+    <img src="https://img.shields.io/badge/Ollama-000000?style=flat-square&logo=ollama&logoColor=white" alt="Ollama" />
+  </p>
+
+</div>
 
 ---
 
@@ -24,26 +69,42 @@
 
 ## 🏗️ Architecture
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                         React 19 + Vite Frontend                      │
-│        (High-Contrast Outdoor Mode • Hands-Free Audio Controls)        │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │  HTTPS / JSON
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                        FastAPI Serverless Backend                      │
-├───────────────────┬───────────────────┬────────────────────────────────┤
-│   Gemma Agent     │   TabPFN Engine   │     Atlas Store & Tools        │
-│ (Ollama / Cloud)  │  (Tabular Model)  │ (MongoDB / SerpApi / Eleven)   │
-└─────────┬─────────┴─────────┬─────────┴───────────────┬────────────────┘
-          │                   │                         │
-          ▼                   ▼                         ▼
-┌──────────────────┐ ┌──────────────────┐ ┌──────────────────────────────┐
-│  Gemma 2B / 9B   │ │ Prior Labs TabPFN│ │ MongoDB Atlas (wildcraft_db) │
-│ Open-Weight LLM  │ │ Foundation Model │ │  - survival_catalog          │
-└──────────────────┘ └──────────────────┘ │  - backcountry_logs          │
-                                          └──────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Client["Outdoor Client - React 19 and Vite"]
+        UI["High-Contrast Outdoor UI"]
+        MIC["Push-to-Talk Voice Input"]
+        AUDIO["Spoken Audio Player"]
+    end
+
+    subgraph Backend["Render Production Backend - FastAPI"]
+        API["FastAPI Edge Gateway"]
+        AGENT["Gemma Survival Agent"]
+        TABPFN_ENG["TabPFN Risk Predictor"]
+        TOOLS["Atlas Store and Tool Hub"]
+    end
+
+    subgraph Intelligence["AI Models and Cloud Services"]
+        GEMMA["Google Gemma 2B / 9B - Ollama or Cloud"]
+        TABPFN["Prior Labs TabPFN Foundation Model"]
+        ELEVEN["ElevenLabs Voice Synthesis"]
+        ATLAS[("MongoDB Atlas - Logs and Survival Catalog")]
+        SERP["SerpApi - Live Ranger Advisories"]
+    end
+
+    UI -->|"HTTPS / JSON"| API
+    MIC -->|"Transcribed Voice"| API
+    API --> AGENT
+    API --> TABPFN_ENG
+    API --> TOOLS
+
+    AGENT -->|"Survival Prompts"| GEMMA
+    AGENT -->|"Text to Narrate"| ELEVEN
+    ELEVEN -->|"Audio Stream"| AUDIO
+
+    TABPFN_ENG -->|"Physiological Vectors"| TABPFN
+    TOOLS -->|"Field Journal and RAG"| ATLAS
+    TOOLS -->|"Trail Alerts"| SERP
 ```
 
 ---
