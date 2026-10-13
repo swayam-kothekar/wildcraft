@@ -12,7 +12,7 @@ const FEATURES = [
     id: 'ai',
     icon: '◉',
     tag: 'Google Gemma',
-    title: 'Bushcraft AI Guide',
+    title: 'Wilderness AI Guide',
     desc: 'Ask anything. Fire, shelter, knots, water purification — voice-guided spoken audio.',
   },
   {

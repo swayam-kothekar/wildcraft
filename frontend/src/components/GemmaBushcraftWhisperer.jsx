@@ -262,7 +262,7 @@ export default function GemmaBushcraftWhisperer({ riskData, offlineBackcountryMo
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <div className="section-eyebrow">Google Gemma · ElevenLabs Voice · Open-Weight</div>
-        <h2 className="section-title">Bushcraft AI Guide</h2>
+        <h2 className="section-title">Wilderness AI Guide</h2>
         <p className="section-sub">
           Ask anything about survival, knots, shelter or foraging.
           {offlineBackcountryMode && <span style={{ color: 'var(--fern)', marginLeft: 8 }}>↑ Running on-device Gemma 2B.</span>}
