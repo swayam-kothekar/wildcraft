@@ -9,7 +9,7 @@
   An intelligent backcountry survival and physiological risk assistant designed with a dual-mode architecture: fully feature-complete when cloud-connected, yet capable of running standalone in disconnected, zero-signal wilderness environments through local on-device fallbacks.
 
   <p align="center">
-    <a href="https://wildcraft.swayamk.tech"><strong>Explore Live Demo »</strong></a>
+    <a href="https://wildcraft.swayamk.tech"><strong>Live Demo »</strong> wildcraft.swayamk.tech</a>
     <br />
     <br />
     <a href="#dual-mode-architecture--offline-resilience">Dual-Mode Architecture</a>
@@ -27,7 +27,7 @@
 
   <p align="center">
     <a href="https://wildcraft.swayamk.tech">
-      <img src="https://img.shields.io/badge/Live_Demo-wildcraft.swayamk.tech-059669?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Demo" />
+      <img src="https://img.shields.io/badge/Production-wildcraft.swayamk.tech-059669?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Production Deployment" />
     </a>
     <img src="https://img.shields.io/badge/Architecture-Dual--Mode-10b981?style=for-the-badge" alt="Dual-Mode Architecture" />
     <img src="https://img.shields.io/badge/Resilience-Offline--Edge-047857?style=for-the-badge&logo=signal&logoColor=white" alt="Offline Resilience" />
