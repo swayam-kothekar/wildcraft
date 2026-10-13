@@ -42,8 +42,8 @@ export default function HomePage({ onTabSelect, liveConditions, gpsLoading, onRe
   return (
     <div className="hero-wrap">
       {/* Ambient orbs */}
-      <div className="hero-orb" style={{ width: 600, height: 600, background: 'radial-gradient(circle, rgba(45,106,79,0.16) 0%, transparent 68%)', top: -120, left: -160 }} />
-      <div className="hero-orb" style={{ width: 400, height: 400, background: 'radial-gradient(circle, rgba(82,183,136,0.09) 0%, transparent 70%)', bottom: -60, right: -60 }} />
+      <div className="hero-orb" style={{ width: 450, height: 450, background: 'rgba(45, 106, 79, 0.22)', top: -80, left: -100 }} />
+      <div className="hero-orb" style={{ width: 350, height: 350, background: 'rgba(82, 183, 136, 0.12)', bottom: -40, right: -40 }} />
 
       <div className="hero-inner anim-fade-up">
         {/* Badges */}
